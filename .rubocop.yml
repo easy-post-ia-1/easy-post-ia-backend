@@ -1,0 +1,31 @@
+require:
+  - rubocop-rspec_rails
+  - rubocop-capybara
+  - rubocop-rspec
+  - rubocop-rails
+  - rubocop-factory_bot
+
+AllCops:
+  NewCops: enable
+
+Metrics/BlockLength:
+  Exclude:
+    - db/schema.rb
+  Max: 50
+
+Layout/LineLength:
+  Exclude:
+    - config/initializers/*
+
+Metrics/ClassLength:
+  Exclude:
+    - db/migrate.rb
+    - db/migrate/*logidze_install.rb
+
+Rails/SkipsModelValidations:
+  Exclude:
+    - db/migrate/*add_service_name_to_active_storage_blobs.active_storage.rb
+
+Metrics/MethodLength:
+  Exclude:
+    - db/migrate/*logidze_install.rb
