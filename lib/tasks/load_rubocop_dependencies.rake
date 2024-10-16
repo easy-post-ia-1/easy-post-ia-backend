@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+require 'rubocop/rake_task'
+
 # Load dependencies
-RuboCop::RakeTask.new do |task|
+RuboCop::RakeTask.new :development do |task|
   task.requires << 'rubocop-rspec_rails'
   task.requires << 'rubocop-capybara'
   task.requires << 'rubocop-rails'
