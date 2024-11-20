@@ -35,7 +35,7 @@ gem 'jbuilder'
 # gem "kredis"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem 'bcrypt', '~> 3.1', '>= 3.1.11'
+gem 'bcrypt', '~> 3.1', '>= 3.1.11'
 
 # Pagination
 gem 'pagy'
@@ -61,6 +61,8 @@ gem 'jsonapi-serializer', '~> 2.2'
 # Authorization and roles
 gem 'cancancan', '~> 3.6', '>= 3.6.1'
 gem 'rolify', '~> 6.0', '>= 6.0.1'
+
+gem 'rack-cors' # After configure all project without views
 
 # # Store multiple changes
 gem 'logidze', '~> 1.1'
@@ -105,6 +107,9 @@ end
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem 'capybara'
+  gem 'database_cleaner-active_record', '~> 2.1'
+  gem 'database_cleaner-redis'
+  gem 'database_cleaner-sequel'
   gem 'selenium-webdriver'
   gem 'simplecov-lcov', require: false
 end

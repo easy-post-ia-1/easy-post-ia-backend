@@ -27,5 +27,12 @@ Rails/SkipsModelValidations:
     - db/migrate/*add_service_name_to_active_storage_blobs.active_storage.rb
 
 Metrics/MethodLength:
+  Max: 15
   Exclude:
     - db/migrate/*logidze_install.rb
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/ExampleLength:
+  Max: 15

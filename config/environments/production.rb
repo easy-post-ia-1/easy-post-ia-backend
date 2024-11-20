@@ -101,4 +101,10 @@ Rails.application.configure do
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  #
+  # Lista de hosts permitidos
+  config.hosts << 'localhost'             # Incluye localhost para desarrollo
+  config.hosts << '127.0.0.1'             # Incluye localhost por IP
+  config.hosts << 'www.example.com'
+  config.hosts.clear
 end

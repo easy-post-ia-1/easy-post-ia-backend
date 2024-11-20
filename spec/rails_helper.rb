@@ -6,11 +6,18 @@ ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
+
+# SimpleCov.minimum_coverage 95
+# SimpleCov.maximum_coverage_drop 5
 # Uncomment the line below in case you have `--require rails_helper` in the `.rspec` file
 # that will avoid rails generators crashing because migrations haven't been run yet
 # return unless Rails.env.test?
 require 'rspec/rails'
+require 'swagger_helper'
 # Add additional requires below this line. Rails is not loaded until this point!
+
+# Import support files to add extra func
+Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -29,6 +36,39 @@ require 'rspec/rails'
 
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.
+
+require 'faker'
+require 'factory_bot_rails'
+require 'devise'
+require 'database_cleaner/active_record'
+require 'simplecov'
+
+SimpleCov.start
+SimpleCov.start do
+  add_filter %w[
+    app/views
+    config
+    test
+    lib/rails
+    lib/templates
+    bin
+    coverage
+    log
+    test
+    vendor
+    node_modules
+    db
+    doc
+    public
+    storage
+    tmp
+  ]
+
+  add_group 'Models', 'app/models'
+  add_group 'Controllers', 'app/controllers'
+end
+SimpleCov.minimum_coverage 90
+
 begin
   ActiveRecord::Migration.maintain_test_schema!
 rescue ActiveRecord::PendingMigrationError => e
@@ -67,6 +107,22 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+  #
+  #   # Devise helpers
+  config.include Devise::Test::ControllerHelpers, type: :controller
+  config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Warden::Test::Helpers
+
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
+  end
 end
 
 Shoulda::Matchers.configure do |config|
