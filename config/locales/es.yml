@@ -1,0 +1,15 @@
+es:
+  activerecord:
+    errors:
+      models:
+        user:
+          attributes:
+            username:
+              blank: "El nombre de usuario no puede estar vacío."
+            email:
+              blank: "El correo electrónico no puede estar vacío."
+              invalid: "El formato del correo electrónico no es válido."
+              taken: "Este correo electrónico ya está registrado."
+            role:
+              blank: "El rol no puede estar vacío."
+              inclusion: "%{value} no es un rol válido. Los roles permitidos son EMPLOYER, EMPLOYEE y ADMIN."

@@ -15,8 +15,9 @@ RSpec.configure do |config|
   # document below. You can override this behavior by adding a openapi_spec tag to the
   # the root example_group in your specs, e.g. describe '...', openapi_spec: 'v2/swagger.json'
   config.openapi_specs = {
-    'v1/swagger.yaml' => {
+    'api/v1/swagger.yaml' => {
       openapi: '3.0.1',
+
       info: {
         title: 'API V1',
         version: 'v1'
@@ -24,14 +25,24 @@ RSpec.configure do |config|
       paths: {},
       servers: [
         {
-          url: 'https://{defaultHost}',
+          url: 'http://{defaultHost}',
           variables: {
             defaultHost: {
-              default: 'www.example.com'
+              default: "http://localhost:#{ENV.fetch('PORT', 3000)}"
             }
           }
         }
-      ]
+      ],
+      basePath: '/api/v1'
+      # components: {
+      #   securitySchemes: {
+      #     bearer_auth: {
+      #       type: :http,
+      #       scheme: :bearer,
+      #       bearerFormat: 'JWT' # o el formato adecuado para tu token
+      #     }
+      #   }
+      # }
     }
   }
 
