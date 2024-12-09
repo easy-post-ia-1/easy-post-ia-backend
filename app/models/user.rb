@@ -32,6 +32,8 @@ class User < ApplicationRecord
   validates :role, presence: true,
                    inclusion: { in: %w[EMPLOYER EMPLOYEE ADMIN], message: :inclusion }
 
+  has_one :team_member, dependent: :destroy
+
   def user_json_response
     serializable_hash(except: %i[id created_at updated_at])
   end

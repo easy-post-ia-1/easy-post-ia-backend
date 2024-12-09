@@ -42,3 +42,9 @@ en:
             role:
               blank: "Role can't be blank."
               inclusion: "%{value} is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN."
+
+  responses:
+    success: "Request was successful."
+    created: "Resource was successfully created."
+    deleted: "Resource was successfully deleted."
+    error: "There was an error processing your request."
