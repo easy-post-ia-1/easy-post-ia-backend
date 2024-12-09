@@ -23,7 +23,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   # describe 'GET #index' do
   #   context 'when the request is valid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       get :index
   #     end
@@ -43,7 +43,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the post exists' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       get :show, params: { id: post.id }
   #     end
@@ -59,7 +59,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the post does not exist' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       get :show, params: { id: 99_999 }
   #     end
@@ -73,7 +73,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   # describe 'POST #create' do
   #   context 'when the request is valid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       post :create, params: { post: valid_post_params }
   #     end
@@ -93,7 +93,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the request is invalid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       post :create, params: { post: invalid_post_params }
   #     end
@@ -117,7 +117,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the request is valid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       put :update, params: { id: post.id, post: { title: 'Updated Title' } }
   #     end
@@ -134,7 +134,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the request is invalid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       put :update, params: { id: post.id, post: { title: '' } }
   #     end
@@ -155,7 +155,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the request is valid' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       delete :destroy, params: { id: post.id }
   #     end
@@ -171,7 +171,7 @@ RSpec.describe Api::V1::Posts::PostsController do
   #
   #   context 'when the post does not exist' do
   #     before do
-  #       @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
+  #       @request.env['devise.mapping'] = Devise.mappings[:user]
   #       sign_in admin
   #       delete :destroy, params: { id: 99_999 }
   #     end
@@ -181,4 +181,10 @@ RSpec.describe Api::V1::Posts::PostsController do
   #     end
   #   end
   # end
+  #
+  describe 'GET' do
+    it 'returns a successful response' do
+      pending 'Post test'
+    end
+  end
 end

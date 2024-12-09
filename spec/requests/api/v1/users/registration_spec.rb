@@ -39,4 +39,9 @@ RSpec.describe 'Registration Swagger' do
       # end
     end
   end
+  describe 'GET' do
+    it 'returns a successful response' do
+      pending 'Pending swagger test'
+    end
+  end
 end

@@ -15,7 +15,7 @@ require 'rails_helper'
 RSpec.describe PrivateHelper do
   describe 'string concat' do
     it 'concats two strings with spaces' do
-      expect('ok').to eq('ok')
+      pending 'Pending test helper'
     end
   end
 end
