@@ -10,10 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_11_03_021645) do
+ActiveRecord::Schema[7.2].define(version: 2024_11_25_200744) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "hstore"
   enable_extension "plpgsql"
+
+  create_table "companies", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "jwt_denylist", force: :cascade do |t|
     t.string "jti", null: false
@@ -21,6 +27,36 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_03_021645) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["jti"], name: "index_jwt_denylist_on_jti"
+  end
+
+  create_table "posts", force: :cascade do |t|
+    t.string "title", limit: 255, null: false
+    t.string "description", limit: 500
+    t.string "image_url"
+    t.string "tags", limit: 255
+    t.datetime "programming_date_to_post", null: false
+    t.boolean "is_published", default: false, null: false
+    t.bigint "team_member_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_member_id"], name: "index_posts_on_team_member_id"
+  end
+
+  create_table "team_members", force: :cascade do |t|
+    t.integer "user_id"
+    t.bigint "team_id", null: false
+    t.integer "role_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id"], name: "index_team_members_on_team_id"
+  end
+
+  create_table "teams", force: :cascade do |t|
+    t.string "name"
+    t.bigint "company_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_teams_on_company_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -36,4 +72,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_03_021645) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
+
+  add_foreign_key "posts", "team_members"
+  add_foreign_key "team_members", "teams"
+  add_foreign_key "teams", "companies"
 end

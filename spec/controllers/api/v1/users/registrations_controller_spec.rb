@@ -37,7 +37,7 @@ RSpec.describe Api::V1::Users::RegistrationsController do
       it 'creates a user and returns user_json_response with status code 201' do
         post :create, params: valid_params, as: :json
         expect(response).to have_http_status(:created)
-        expect(response.parsed_body).to eq(User.find_by(email: valid_params[:email]).user_json_response)
+        expect(response.parsed_body[:user]).to eq(User.find_by(email: valid_params[:email]).user_json_response)
       end
     end
 
@@ -55,11 +55,11 @@ RSpec.describe Api::V1::Users::RegistrationsController do
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response_json).to include('errors')
         expect(response_json['errors']).to include(
-          'Email is invalid',
+          'Email Invalid email format.',
           'Password is too short (minimum is 6 characters)',
-          "Username can't be blank",
-          'Email is invalid',
-          'Role INVALID_ROLE is not a valid role'
+          "Username Username can't be blank.",
+          'Email Invalid email format.',
+          'Role INVALID_ROLE is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.'
         )
       end
     end
@@ -76,8 +76,10 @@ RSpec.describe Api::V1::Users::RegistrationsController do
         response_json = response.parsed_body
         created_user = User.find_by(email: valid_params[:email])
 
+        expected_response = { 'status' => { 'code' => 201, 'message' => 'Welcome! You have signed up successfully.' },
+                              'user' => created_user.user_json_response }
         expect(response).to have_http_status(:created)
-        expect(response_json).to eq(created_user.user_json_response)
+        expect(response_json).to eq(expected_response)
       end
 
       it 'verify method enabled? in RackSessionFix::FakeRackSession' do

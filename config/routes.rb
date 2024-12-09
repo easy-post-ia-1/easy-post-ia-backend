@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   get 'up' => 'rails/health#show', as: :rails_health_check
   namespace :api do
     namespace :v1 do
+      resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
       mount Rswag::Ui::Engine => '/docs'
       mount Rswag::Api::Engine => '/docs'
       # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -12,7 +13,6 @@ Rails.application.routes.draw do
       # Can be used by load balancers and uptime monitors to verify that the app is live.
 
       # Defines the root path route ("/")
-      # root "posts#index"
       #
 
       namespace :users do
