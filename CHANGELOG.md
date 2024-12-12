@@ -2,6 +2,16 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.4 (12/12/2024)
+
+Feature, KAN-4, KAN-38, KAN-39: Create admin.
+
+- Change development entrypoint with dev to get compilation of tailwind and run rails.
+- Update .gitignore to ignore app assets build.
+- Update previous CHANGELOG.
+- Add madmin gem with routes, resources to different models, views and simple auth and update styles.
+- Add tailwind config to add styles.
+
 ## v0.0.3 (09/12/2024)
 
 Feature, KAN-34, KAN-30: CRUD Post and add other models.
