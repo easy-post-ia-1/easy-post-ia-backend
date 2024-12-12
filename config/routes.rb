@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  draw :madmin
+  root to: 'madmin#show'
+
   get 'up' => 'rails/health#show', as: :rails_health_check
   namespace :api do
     namespace :v1 do

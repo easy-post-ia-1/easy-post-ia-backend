@@ -5,6 +5,8 @@ if [ -f tmp/pids/server.pid ]; then
 fi
 
 echo $API_PORT
-bin/rails s -p $API_PORT -b $BIND_PORT
+# bin/rails s -p $API_PORT -b $BIND_PORT
+
+bin/dev
 
 exec "$@"

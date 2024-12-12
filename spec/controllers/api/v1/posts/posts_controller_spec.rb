@@ -3,6 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::Posts::PostsController do
+  pending 'Pending test helper'
   # include Devise::Test::ControllerHelpers
   # include Devise::Test::IntegrationHelpers
   #

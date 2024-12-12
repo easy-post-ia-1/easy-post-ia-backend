@@ -67,6 +67,9 @@ gem 'rack-cors' # After configure all project without views
 # # Store multiple changes
 gem 'logidze', '~> 1.1'
 
+# Admin Rails
+gem 'madmin', '~> 2.0'
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'annotate' # Schema in classes
@@ -113,3 +116,5 @@ group :test do
   gem 'selenium-webdriver'
   gem 'simplecov-lcov', require: false
 end
+
+gem 'tailwindcss-rails', '~> 3.0'

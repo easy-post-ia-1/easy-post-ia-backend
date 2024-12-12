@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-# Provate Helper
+# Private Helper
 module PrivateHelper
 end

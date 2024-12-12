@@ -2,6 +2,32 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.4 (12/12/2024)
+
+Feature, KAN-4, KAN-38, KAN-39: Create admin.
+
+- Change development entrypoint with dev to get compilation of tailwind and run rails.
+- Update .gitignore to ignore app assets build.
+- Update previous CHANGELOG.
+- Add madmin gem with routes, resources to different models, views and simple auth and update styles.
+- Add tailwind config to add styles.
+
+## v0.0.3 (09/12/2024)
+
+Feature, KAN-34, KAN-30: CRUD Post and add other models.
+
+- Create CRUD controller to posts with verification of Team.
+- Add future helper to post.
+- Create migrations, models and initial test to Company, Team, TeamMember, Post.
+- Update User model to verified with username and relate references.
+- Create routes.
+- Create seeds to the different models.
+- Generate strategy to clean db in the test.
+- Allow more ips in cors to look console.
+- Add translations to look errors, success status in endpoints and models.
+- Create rake task to cleanup the seeds.
+- Update test and helpers to advance in resolve the error.
+
 ## v0.0.2 (21/09/2024)
 
 Feature: KAN-26, KAN-2, KAN-28, Create login, logout and signup.

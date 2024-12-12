@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+
+@layer components {
+  .btn-primary {
+    @apply py-2 px-4 bg-blue-200;
+  }
+}
+
+*/
+
+.form-group {
+  @apply my-4;
+}
+
+.form-input,
+input {
+  @apply rounded-md;
+}
+
+a {
+  @apply text-blue-500 hover:text-blue-700 mx-4;
+}
+
+.pagination {
+  @apply my-4;
+}
+
+td {
+  @apply px-4 py-2;
+}
+
+th > a {
+  @apply inline-flex;
+}
