@@ -182,4 +182,10 @@ RSpec.describe Api::V1::Posts::PostsController do
   #     end
   #   end
   # end
+  #
+  describe 'GET' do
+    it 'returns a successful response' do
+      pending 'Post test'
+    end
+  end
 end

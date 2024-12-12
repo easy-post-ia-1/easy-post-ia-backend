@@ -3,7 +3,7 @@
 module Api
   module V1
     module Posts
-      # Post Helper
+      # Post helper
       module PostHelper
       end
     end
