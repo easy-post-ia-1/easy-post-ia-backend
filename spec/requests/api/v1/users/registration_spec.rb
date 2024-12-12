@@ -22,6 +22,7 @@ RSpec.describe 'Registration Swagger' do
 
         run_test!
       end
+      pending 'Pending test helper'
 
       # response '401', 'authentication failed' do
       #   let(:Authorization) { "Basic #{Base64.strict_encode64('bogus:bogus')}" }

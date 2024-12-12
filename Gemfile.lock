@@ -50,6 +50,10 @@ GEM
       globalid (>= 0.3.6)
     activemodel (7.2.1)
       activesupport (= 7.2.1)
+    activemodel-serializers-xml (1.0.3)
+      activemodel (>= 5.0.0.a)
+      activesupport (>= 5.0.0.a)
+      builder (~> 3.1)
     activerecord (7.2.1)
       activemodel (= 7.2.1)
       activesupport (= 7.2.1)
@@ -99,6 +103,9 @@ GEM
     concurrent-ruby (1.3.4)
     connection_pool (2.4.1)
     crass (1.0.6)
+    cssbundling-rails (1.4.1)
+      railties (>= 6.0.0)
+    csv (3.3.0)
     database_cleaner-active_record (2.2.0)
       activerecord (>= 5.a)
       database_cleaner-core (~> 2.0.0)
@@ -166,6 +173,18 @@ GEM
       activesupport (>= 4.2)
     jwt (2.9.0)
       base64
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     language_server-protocol (3.17.0.3)
     logger (1.6.1)
     logidze (1.3.0)
@@ -174,6 +193,11 @@ GEM
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
+    madmin (2.0.0)
+      importmap-rails
+      pagy (>= 3.5)
+      propshaft
+      rails (>= 7.0.0)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
@@ -184,6 +208,7 @@ GEM
     mini_mime (1.1.5)
     minitest (5.25.1)
     msgpack (1.7.2)
+    nested_form (0.3.2)
     net-imap (0.4.16)
       date
       net-protocol
@@ -205,6 +230,11 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.5.8)
+    propshaft (1.1.0)
+      actionpack (>= 7.0.0)
+      activesupport (>= 7.0.0)
+      rack
+      railties (>= 7.0.0)
     psych (5.1.2)
       stringio
     public_suffix (6.0.1)
@@ -242,6 +272,13 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
+    rails_admin (3.3.0)
+      activemodel-serializers-xml (>= 1.0)
+      csv
+      kaminari (>= 0.14, < 2.0)
+      nested_form (~> 0.3)
+      rails (>= 6.0, < 9)
+      turbo-rails (>= 1.0, < 3)
     railties (7.2.1)
       actionpack (= 7.2.1)
       activesupport (= 7.2.1)
@@ -350,6 +387,11 @@ GEM
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
     stringio (3.1.1)
+    tailwindcss-rails (3.0.0)
+      railties (>= 7.0.0)
+      tailwindcss-ruby
+    tailwindcss-ruby (3.4.16-aarch64-linux)
+    tailwindcss-ruby (3.4.16-arm64-darwin)
     thor (1.3.2)
     timeout (0.4.1)
     turbo-rails (2.0.9)
@@ -392,6 +434,7 @@ DEPENDENCIES
   brakeman
   cancancan (~> 3.6, >= 3.6.1)
   capybara
+  cssbundling-rails
   database_cleaner-active_record (~> 2.1)
   database_cleaner-redis
   database_cleaner-sequel
@@ -405,11 +448,13 @@ DEPENDENCIES
   jbuilder
   jsonapi-serializer (~> 2.2)
   logidze (~> 1.1)
+  madmin (~> 2.0)
   pagy
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors
   rails (~> 7.2, >= 7.2.1)
+  rails_admin (~> 3.0)
   rolify (~> 6.0, >= 6.0.1)
   rspec-rails
   rswag-api
@@ -427,6 +472,7 @@ DEPENDENCIES
   simplecov-lcov
   sprockets-rails
   stimulus-rails
+  tailwindcss-rails (~> 3.0)
   turbo-rails
   tzinfo-data
   web-console
