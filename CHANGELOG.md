@@ -2,6 +2,18 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.5 (18/12/2024)
+
+Feature, KAN-36, KAN-3: Create strategy backend.
+
+- Update rubocop to add hash syntax.
+- Update gemfile lock.
+- Create translations to controllers strategy.
+- Create routes, models, migrations, controllers, test, seeds related with Strategy, Posts.
+- Create job to handle Strategy in the future to schedule post.
+- Update post controller to allow pagination.
+- Update session controller to make endpoint /me to get information.
+
 ## v0.0.4 (12/12/2024)
 
 Feature, KAN-4, KAN-38, KAN-39: Create admin.
