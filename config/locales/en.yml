@@ -30,6 +30,7 @@
 en:
   activerecord:
     errors:
+      missing_params: "Missing parameters: %{params}"
       models:
         user:
           attributes:
