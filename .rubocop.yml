@@ -36,3 +36,6 @@ RSpec/MultipleExpectations:
 
 RSpec/ExampleLength:
   Max: 15
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19

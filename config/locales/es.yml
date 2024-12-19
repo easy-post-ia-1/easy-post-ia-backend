@@ -1,6 +1,7 @@
 es:
   activerecord:
     errors:
+      missing_params: "Faltan parámetros: %{params}"
       models:
         user:
           attributes:

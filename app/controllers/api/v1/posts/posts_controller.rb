@@ -7,12 +7,17 @@ module Api
       # Posts Controller
       class PostsController < ApplicationController
         before_action :set_post, only: %i[show update destroy]
+        before_action :pagination_params, only: %i[index]
         before_action :authenticate_user!
 
         # GET /api/v1/posts
         def index
-          posts = Post.where(team_member_id: current_user.team_member.id).all
-          render json: success_response(posts:), status: :ok
+          page, page_size = pagination_params.values_at(:page, :page_size)
+          @pagy, @records = pagy(Post.where(team_member_id: current_user.team_member.id), items: page_size,
+                                                                                          page:)
+
+          pagination = { page: @pagy.page, pages: @pagy.pages, count: @pagy.count }
+          render json: success_response({ posts: @records, pagination: }), status: :ok
         end
 
         # GET /api/v1/posts/:id
@@ -61,6 +66,13 @@ module Api
         # Strong Parameters
         def post_params
           params.require(:post).permit(:title, :description, :tags, :programming_date_to_post, :team_member_id)
+        end
+
+        def pagination_params
+          {
+            page: params[:page]&.to_i || 1,
+            page_size: params[:page_size]&.to_i || 10
+          }
         end
 
         # Set Post

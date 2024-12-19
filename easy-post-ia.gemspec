@@ -3,7 +3,7 @@
 Gem::Specification.new do |spec|
   # Basic project information
   spec.name          = 'easy-post-ia-backend'
-  spec.version       = '0.0.4'
+  spec.version       = '0.0.5'
   spec.authors       = ['Santiago Toquica Yanguas']
   spec.email         = ['your_email@example.com']
   spec.summary       = 'A brief summary of the project'

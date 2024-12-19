@@ -33,6 +33,16 @@ module Api
         #
         respond_to :json
 
+        # GET /me
+        def me
+          current_user = find_user_from_token
+          if current_user
+            render json: { user: current_user&.user_json_response }, status: :ok
+          else
+            render json: { error: 'Unauthorized' }, status: :unauthorized
+          end
+        end
+
         private
 
         def respond_with(current_user, _opts = {})

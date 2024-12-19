@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
+      post '/create_strategy', to: 'strategies#create'
+
       mount Rswag::Ui::Engine => '/docs'
       mount Rswag::Api::Engine => '/docs'
       # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -18,9 +20,7 @@ Rails.application.routes.draw do
       # Defines the root path route ("/")
       #
 
-      namespace :users do
-        get 'healthcheck', to: 'healthcheck#show'
-      end
+      get '/users/healthcheck', to: 'users/healthcheck#show'
     end
   end
   devise_for :users,
@@ -36,4 +36,8 @@ Rails.application.routes.draw do
                sessions: 'api/v1/users/sessions',
                registrations: 'api/v1/users/registrations'
              }
+
+  devise_scope :user do
+    get 'api/v1/users/me', to: 'api/v1/users/sessions#me'
+  end
 end

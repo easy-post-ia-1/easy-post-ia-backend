@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_11_25_200744) do
+ActiveRecord::Schema[7.2].define(version: 2024_12_16_220727) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "hstore"
   enable_extension "plpgsql"
@@ -39,7 +39,31 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_25_200744) do
     t.bigint "team_member_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "strategy_id"
+    t.index ["strategy_id"], name: "index_posts_on_strategy_id"
     t.index ["team_member_id"], name: "index_posts_on_team_member_id"
+  end
+
+  create_table "strategies", force: :cascade do |t|
+    t.datetime "from_schedule"
+    t.datetime "to_schedule"
+    t.string "description"
+    t.integer "status"
+    t.json "success_response"
+    t.json "error_response"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "strategies_tables", force: :cascade do |t|
+    t.datetime "from_schedule"
+    t.datetime "to_schedule"
+    t.string "description"
+    t.integer "status"
+    t.json "success_response"
+    t.json "error_response"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "team_members", force: :cascade do |t|
@@ -73,6 +97,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_25_200744) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "posts", "strategies"
   add_foreign_key "posts", "team_members"
   add_foreign_key "team_members", "teams"
   add_foreign_key "teams", "companies"
