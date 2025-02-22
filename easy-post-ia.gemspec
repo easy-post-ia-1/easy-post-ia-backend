@@ -3,14 +3,14 @@
 Gem::Specification.new do |spec|
   # Basic project information
   spec.name          = 'easy-post-ia-backend'
-  spec.version       = '0.0.5'
+  spec.version       = '0.0.6'
   spec.authors       = ['Santiago Toquica Yanguas']
   spec.email         = ['your_email@example.com']
   spec.summary       = 'A brief summary of the project'
   spec.description   = 'A detailed description of your project'
   spec.homepage      = 'https://your_project_homepage.example.com'
   spec.license       = 'Read License file'
-  spec.required_ruby_version = '>= 3.3.0'
+  spec.required_ruby_version = '>= 3.3.6'
 
   # No files or executables needed since this is for information only
   spec.files         = []

@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require 'sidekiq/web'
+require 'sidekiq/cron/web' # This adds cron job visibility
+
 Rails.application.routes.draw do
   draw :madmin
   root to: 'madmin#show'
+  mount Sidekiq::Web => '/sidekiq' # mount Sidekiq::Web in your Rails app
 
   get 'up' => 'rails/health#show', as: :rails_health_check
   namespace :api do
@@ -18,7 +22,6 @@ Rails.application.routes.draw do
       # Can be used by load balancers and uptime monitors to verify that the app is live.
 
       # Defines the root path route ("/")
-      #
 
       get '/users/healthcheck', to: 'users/healthcheck#show'
     end

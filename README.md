@@ -6,8 +6,8 @@ Welcome to the **Easy Post IA Backend**! This application is built using the lat
 
 Ensure you have the following installed:
 
-- **Ruby** 3.3.0
-- **Rails** 7.1.3
+- **Ruby** 3.3.6
+- **Rails** 7.2.1
 - **PostgreSQL** (for database management)
 
 ## 🛠️ Setup Instructions
