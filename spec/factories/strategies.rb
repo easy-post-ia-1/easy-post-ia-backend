@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: strategies
@@ -14,6 +16,5 @@
 #
 FactoryBot.define do
   factory :strategy do
-    
   end
 end

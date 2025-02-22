@@ -29,4 +29,11 @@
 class Post < ApplicationRecord
   belongs_to :team_member
   belongs_to :strategy
+
+  def self.programming_date_to_cron(post_id)
+    post = Post.find_by(id: post_id)
+    return nil unless post
+
+    post.programming_date_to_post.strftime('%M %H %d %m *')
+  end
 end

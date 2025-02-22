@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '3.3.0'
+ruby '3.3.6'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem 'rails', '~> 7.2', '>= 7.2.1'
@@ -29,7 +29,7 @@ gem 'stimulus-rails'
 gem 'jbuilder'
 
 # Use Redis adapter to run Action Cable in production
-# gem "redis", ">= 4.0.1"
+gem 'redis', '>= 4.0.1'
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -70,11 +70,26 @@ gem 'logidze', '~> 1.1'
 # Admin Rails
 gem 'madmin', '~> 2.0'
 
+gem 'tailwindcss-rails', '~> 3.0'
+
+# Twitter API
+gem 'x', '~> 0.14.1'
+
+# Jobs to publish
+gem 'sidekiq', '~> 7.3'
+gem 'sidekiq-cron', '~> 2.0'
+
+# AWS services
+gem 'aws-sdk-bedrock', '~> 1.34'
+gem 'aws-sdk-bedrockruntime', '~> 1.35'
+gem 'aws-sdk-s3', '~> 1.177'
+
+gem 'discard', '~> 1.2' # Soft delete fields.
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'annotate' # Schema in classes
   gem 'debug', platforms: %i[mri windows]
-  gem 'discard', '~> 1.2' # Soft delete fields.
   gem 'factory_bot_rails' # Automatic factories
   gem 'faker' # Emulate data
   gem 'rspec-rails' # Tests
@@ -116,5 +131,3 @@ group :test do
   gem 'selenium-webdriver'
   gem 'simplecov-lcov', require: false
 end
-
-gem 'tailwindcss-rails', '~> 3.0'

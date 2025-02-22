@@ -1,12 +1,13 @@
 services:
   easy-post-ia-back:
     build:
-      context: ./
-      dockerfile: ./.docker-container/${ENVIRONMENT_RAILS}.Dockerfile
-    command: bash -c "./.docker-container/docker-entrypoint.sh"
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "./bin/docker-entrypoint"
+    user: root
     image: easy-post-ia-back:${ENVIRONMENT_RAILS}
     container_name: easy-post-ia-back
-    restart: on-failure:1
+    restart: on-failure:2
     tty: true
     stdin_open: true
     env_file:
@@ -20,6 +21,7 @@ services:
       - "${API_PORT}:${API_PORT}"
     volumes:
       - .:/rails
+      # - bundle_cache:/usr/local/bundle
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:3000/up"]
       interval: 200s
@@ -59,7 +61,20 @@ services:
       start_period: 10s
       timeout: 10s
     ports:
-      - "6371:6379"
+      - "6379:6379"
+    networks:
+      - easy-post-ia-backend-network
+  sidekiq:
+    build: ./
+    container_name: easy-post-ia-sidekiq
+    command: bundle exec sidekiq -C /rails/config/sidekiq.yml --verbose
+    depends_on:
+      - redis
+      - easy-post-ia-postgresdb
+    volumes:
+      - .:/rails
+    env_file:
+      - .env
     networks:
       - easy-post-ia-backend-network
 
@@ -69,3 +84,4 @@ networks:
 volumes:
   pg_data:
   redis_data:
+  # bundle_cache:

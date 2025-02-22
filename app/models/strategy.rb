@@ -14,19 +14,19 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #
-# Class model Strategy
 class Strategy < ApplicationRecord
   # Associations
   has_many :posts, dependent: :restrict_with_error
 
-  # Enum definition for status
+  # Enum definition for status startegy
   enum :status, {
     pending: 0,
     in_progress: 1,
     completed: 2,
     failed: 3,
     cancelled: 4,
-    approved: 5
+    approved: 5,
+    scheduled: 6
   }
 
   # Validations

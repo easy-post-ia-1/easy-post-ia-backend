@@ -2,6 +2,22 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.6 (22/02/2024)
+
+- Feature, KAN-52: Add initial authentication skeleton.
+
+- Fix Dockerfile and remove entry point.
+- Create post generator using AWS SDK Bedrock.
+- Create template prompt and remove unused characters.
+- Implement login strategy for AWS.
+- Create posts, save Base64 images, and test in database.
+- Add helper for Twitter login and post publishing.
+- Develop job strategy for marketing automation.
+- Enable Post model conversion to cron time.
+- Add new status to Strategy model.
+- Configure Sidekiq, routes, and S3.
+- Update Gemfile and README.
+
 ## v0.0.5 (18/12/2024)
 
 Feature, KAN-36, KAN-3: Create strategy backend.
