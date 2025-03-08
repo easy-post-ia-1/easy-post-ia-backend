@@ -64,4 +64,38 @@ RSpec.describe Api::V1::Users::SessionsController do
       end
     end
   end
+
+  describe 'GET #me' do
+    context 'when the user is authenticated' do
+      before do
+        @request.env['devise.mapping'] = Devise.mappings[:user]
+        sign_in user
+        token = Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
+        request.headers['Authorization'] = "Bearer #{token}"
+        get :me
+      end
+
+      it 'returns the authenticated user data' do
+        expect(response).to have_http_status(:ok)
+
+        expect(response.parsed_body['user']).to include(
+          'email' => user.email,
+          'username' => user.username,
+          'role' => user.role
+        )
+      end
+    end
+
+    context 'when the user is not authenticated' do
+      before do
+        @request.env['devise.mapping'] = Devise.mappings[:user]
+        sign_in user
+        get :me
+      end
+
+      it 'returns an unauthorized response' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

@@ -1,0 +1,782 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API V1",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/v1/posts": {
+      "get": {
+        "summary": "Retrieves all posts",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 200
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Posts retrieved successfully"
+                        }
+                      }
+                    },
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "Sample Post"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "This is a sample post description"
+                          },
+                          "tags": {
+                            "type": "string",
+                            "example": "example,post"
+                          },
+                          "programming_date_to_post": {
+                            "type": "string",
+                            "format": "date_time",
+                            "example": "2024-11-26T00:00:00Z"
+                          },
+                          "team_member_id": {
+                            "type": "integer",
+                            "example": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 401
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Unauthorized"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Creates a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Post created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 201
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Post created successfully"
+                        }
+                      }
+                    },
+                    "post": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Sample Post"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "This is a sample post description"
+                        },
+                        "tags": {
+                          "type": "string",
+                          "example": "example,post"
+                        },
+                        "programming_date_to_post": {
+                          "type": "string",
+                          "format": "date_time",
+                          "example": "2024-11-26T00:00:00Z"
+                        },
+                        "team_member_id": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 422
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        }
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "example": "Title can't be blank"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Sample Post"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "This is a sample post description"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "example,post"
+                  },
+                  "programming_date_to_post": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2024-11-26T00:00:00Z"
+                  },
+                  "team_member_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "title",
+                  "description",
+                  "programming_date_to_post",
+                  "team_member_id"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Post ID",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Retrieves a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 200
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Post retrieved successfully"
+                        }
+                      }
+                    },
+                    "post": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Sample Post"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "This is a sample post description"
+                        },
+                        "tags": {
+                          "type": "string",
+                          "example": "example,post"
+                        },
+                        "programming_date_to_post": {
+                          "type": "string",
+                          "format": "date_time",
+                          "example": "2024-11-26T00:00:00Z"
+                        },
+                        "team_member_id": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 200
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Post updated successfully"
+                        }
+                      }
+                    },
+                    "post": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "Updated Post"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletes a post",
+        "tags": [
+          "Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 200
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Post deleted successfully"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/strategies": {
+      "post": {
+        "summary": "Creates a marketing strategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Strategy created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "idProccess": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Missing parameters: from_schedule, to_schedule"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2025-03-01T10:00:00Z"
+                  },
+                  "to_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2025-03-10T18:00:00Z"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "New campaign strategy for social media"
+                  }
+                },
+                "required": [
+                  "from_schedule",
+                  "to_schedule",
+                  "description"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/signup": {
+      "post": {
+        "summary": "Creates a new user registration",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "User successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 201
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "User successfully created"
+                        }
+                      }
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "username": {
+                          "type": "string",
+                          "example": "test_user"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "test_user@example.com"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "EMPLOYEE"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request or validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 422
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Validation failed"
+                        }
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "Username can't be blank",
+                        "Email is invalid",
+                        "Role is not included in the list"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 401
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Unauthorized"
+                        }
+                      }
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid credentials"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "The username of the user",
+                    "example": "test_user"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The email address of the user",
+                    "example": "test_user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The password of the user",
+                    "example": "password1234"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "EMPLOYEE",
+                      "ADMIN",
+                      "CUSTOMER"
+                    ],
+                    "description": "The role of the user (e.g., EMPLOYEE, ADMIN, CUSTOMER)",
+                    "example": "EMPLOYEE"
+                  }
+                },
+                "required": [
+                  "username",
+                  "email",
+                  "password",
+                  "role"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "summary": "Retrieves the current user details",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 200
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "User details retrieved successfully"
+                        }
+                      }
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "username": {
+                          "type": "string",
+                          "example": "test_user"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "test_user@example.com"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "EMPLOYEE"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "example": 401
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Unauthorized"
+                        }
+                      }
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid credentials"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "{defaultHost}",
+      "variables": {
+        "defaultHost": {
+          "default": "http://localhost:3000"
+        }
+      }
+    }
+  ],
+  "basePath": "/api/v1",
+  "components": {
+    "securitySchemes": {
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-# app/controllers/concerns/rack_session_fix.rb
+# app/controllers/concerns/rack_session_fix
+#
+# :nocov:
 module RackSessionFix
   extend ActiveSupport::Concern
   # Fake rack session to update project to be only API
@@ -19,3 +21,4 @@ module RackSessionFix
     end
   end
 end
+# :nocov:

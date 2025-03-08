@@ -26,9 +26,11 @@ module Api
             prompt = "#{prompt_template}#{user_prompt}"
             res = generate_text(prompt)
 
+            post_ids = []
+            return { status: :failed, posts: post_ids, error: 'Post dont generated', res: } unless res[:posts]&.present?
+
             strategy = Strategy.find(options[:strategy_id])
             team_member = User.find(options[:creator_id]).team_member
-            post_ids = []
             res[:posts].each do |post_data|
               post = Post.new(
                 title: post_data['title'],
@@ -98,7 +100,7 @@ module Api
             generation = JSON.parse(response.body.string)['generation'].match(/\[.*\]/m).to_s
             body = JSON.parse(generation)
             Rails.logger.info("Generated text: #{body}")
-            { status: body.present?, data: body }
+            { status: body.present? ? :success : :failed, posts: body }
           rescue Aws::Bedrock::Errors::ServiceError => e
             Rails.logger.error("Failed to generate text: #{e.message}")
             { error: e.message }

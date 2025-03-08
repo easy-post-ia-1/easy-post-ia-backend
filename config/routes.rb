@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'sidekiq/web'
-require 'sidekiq/cron/web' # This adds cron job visibility
+require 'sidekiq/cron/web'
 
 Rails.application.routes.draw do
   draw :madmin
@@ -14,8 +14,8 @@ Rails.application.routes.draw do
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
       post '/create_strategy', to: 'strategies#create'
 
-      mount Rswag::Ui::Engine => '/docs'
-      mount Rswag::Api::Engine => '/docs'
+      mount Rswag::Ui::Engine => '/docs' unless Rails.env.production?
+      mount Rswag::Api::Engine => '/docs' unless Rails.env.production?
       # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
       # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

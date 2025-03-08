@@ -22,11 +22,9 @@
 #
 FactoryBot.define do
   factory :user do
-    id { 1 }
-    username { 'test_user' }
-    email { 'test_user@example.com' }
+    username { Faker::Internet.username(specifier: 8) }
+    email { Faker::Internet.email }
     role { 'EMPLOYER' }
     password { 'sdhjsdhjsd' }
-    team_member
   end
 end
