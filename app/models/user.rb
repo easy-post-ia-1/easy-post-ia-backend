@@ -33,6 +33,7 @@ class User < ApplicationRecord
                    inclusion: { in: %w[EMPLOYER EMPLOYEE ADMIN], message: :inclusion }
 
   has_one :team_member, dependent: :destroy
+  has_one :team, through: :team_member
 
   def user_json_response
     serializable_hash(except: %i[id created_at updated_at])

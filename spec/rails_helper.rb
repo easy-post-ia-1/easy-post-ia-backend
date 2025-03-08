@@ -13,11 +13,11 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 # that will avoid rails generators crashing because migrations haven't been run yet
 # return unless Rails.env.test?
 require 'rspec/rails'
-require 'swagger_helper'
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Import support files to add extra func
-Dir[Rails.root.glob('spec/support/**/*.rb')].each { |f| require f }
+# Dir[Rails.root.glob('spec/support/**/*.rb')].each { |f| require f }
+Dir.glob(Rails.root.join('spec/support/**/*.rb')).each { |f| require f }
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -66,6 +66,11 @@ SimpleCov.start do
 
   add_group 'Models', 'app/models'
   add_group 'Controllers', 'app/controllers'
+  add_group 'Sidekiq', 'app/sidekiq'
+
+  add_filter do |source_file|
+    source_file.filename.include?('app/') && !source_file.filename.include?('app/sidekiq')
+  end
 end
 SimpleCov.minimum_coverage 90
 
@@ -74,7 +79,10 @@ begin
 rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
+
 RSpec.configure do |config|
+  config.filter_run_excluding type: :skip
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('spec/fixtures')

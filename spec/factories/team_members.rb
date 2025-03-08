@@ -21,8 +21,8 @@
 #
 FactoryBot.define do
   factory :team_member do
-    user
-    team
+    user { build(:user) }
+    team { build(:team) }
     role_id { 1 }
   end
 end

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require Rails.root.join('app/controllers/concerns/rack_session_fix.rb').to_s
-
+# require Rails.root.join('app/controllers/concerns/rack_session_fix.rb').to_s
+#
 RSpec.describe Api::V1::Users::RegistrationsController do
   include Devise::Test::ControllerHelpers
   include Devise::Test::IntegrationHelpers

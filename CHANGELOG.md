@@ -2,7 +2,22 @@
 
 This document lists breaking changes for each major release.
 
-## v0.0.6 (22/02/2024)
+## v0.0.7 (08/02/2025)
+
+- Feature, KAN-53, KAN-54, KAN-55: Enhance post creation and authentication flow.
+
+- Fix session handling in rack_session_fix.rb.
+- Improve Bedrock post generation in create_posts_ia_helper.rb.
+- Refactor CreateMarketingStrategyJob for better strategy execution.
+- Update Post and User models with new attributes and methods.
+- Adjust Rswag UI configuration in rswag_ui.rb.
+- Modify routes to accommodate new API endpoints.
+- Enhance test coverage new request specs and updated factories.
+- Remove obsolete specs and outdated request tests.
+- Update Sidekiq job for social network publishing.
+- Replace deprecated YAML with JSON format.
+
+## v0.0.6 (22/02/2025)
 
 - Feature, KAN-52: Add initial authentication skeleton.
 

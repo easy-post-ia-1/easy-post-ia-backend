@@ -28,7 +28,12 @@
 #
 class Post < ApplicationRecord
   belongs_to :team_member
-  belongs_to :strategy
+  belongs_to :strategy, optional: true
+
+  has_one :team, through: :team_member
+
+  validates :title, presence: true
+  validates :programming_date_to_post, presence: true
 
   def self.programming_date_to_cron(post_id)
     post = Post.find_by(id: post_id)
