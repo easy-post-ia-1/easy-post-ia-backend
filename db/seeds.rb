@@ -10,74 +10,67 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 #
+require 'faker'
+
 Rails.logger.debug '=' * 20
 Rails.logger.debug 'Users'
 # Create User accounts
-user1 = User.create!(
-  username: 'test_user1',
-  email: 'test_user1@example.com',
-  password: 'Password123',
-  password_confirmation: 'Password123',
-  role: 'ADMIN'
-)
-
-user2 = User.create!(
-  username: 'test_user2',
-  email: 'test_user2@example.com',
-  password: 'Password123',
-  password_confirmation: 'Password123',
-  role: 'EMPLOYER'
-)
-
-User.create!(
-  username: 'test_user3',
-  email: 'test_user3@example.com',
-  password: 'Password123',
-  password_confirmation: 'Password123',
-  role: 'EMPLOYEE'
-)
+users = []
+roles = %w[ADMIN EMPLOYER EMPLOYEE]
+3.times do |i|
+  users << User.create!(
+    username: Faker::Internet.unique.username,
+    email: Faker::Internet.unique.email,
+    password: 'Password123',
+    password_confirmation: 'Password123',
+    role: roles[i]
+  )
+end
 
 Rails.logger.debug '=' * 20
 Rails.logger.debug 'Companies'
 # Create a Company
-company = Company.create!(name: 'Tech Innovators Inc.')
+company = Company.create!(name: Faker::Company.name)
 
 Rails.logger.debug '=' * 20
 Rails.logger.debug 'Teams'
-
 # Create Teams
-team1 = company.teams.create!(name: 'Empanada Team')
-team2 = company.teams.create!(name: 'Mondongo Team')
+teams = []
+2.times { teams << company.teams.create!(name: Faker::Team.name) }
 
 Rails.logger.debug '=' * 20
-Rails.logger.debug 'Teams Members'
+Rails.logger.debug 'Team Members'
 # Create Team Members
-team_member1 = team1.team_members.create!(user_id: user1.id, role_id: 1)
-team_member2 = team2.team_members.create!(user_id: user2.id, role_id: 2)
+team_members = []
+teams.each_with_index do |team, index|
+  team_members << team.team_members.create!(user_id: users[index].id, role_id: index + 1)
+end
 
 Rails.logger.debug '=' * 20
-
-# Create 3 strategies
+Rails.logger.debug 'Strategies and Posts'
+# Create Strategies with Posts
 3.times do |i|
   strategy = Strategy.create!(
-    from_schedule: (DateTime.now.utc + (i + 1).days).iso8601,
-    to_schedule: (DateTime.now.utc + (i + 2).days).iso8601,
-    description: "Strategy Description #{i + 1}",
+    from_schedule: Faker::Time.forward(days: i + 1, period: :morning).iso8601,
+    to_schedule: Faker::Time.forward(days: i + 2, period: :evening).iso8601,
+    description: Faker::Lorem.sentence,
     status: %i[pending in_progress completed].sample,
     success_response: { message: 'Strategy created successfully' },
     error_response: { message: 'No error' }
   )
 
-  # Create 10 posts for each strategy
-  10.times do |j|
+  # Create 10 posts per strategy
+  10.times do
     Post.create!(
-      title: "Post Title #{(i * 10) + j + 1}",
-      description: "Description for Post #{(i * 10) + j + 1}.",
-      tags: (j.even? ? 'rails,api' : 'marketing,startups'),
-      image_url: "https://placehold.co/400?text=Post+#{(i * 10) + j + 1}",
-      programming_date_to_post: (DateTime.now.utc + ((i * 10) + j + 1).days).iso8601,
-      team_member: j.even? ? team_member1 : team_member2,
-      strategy:
+      title: Faker::Lorem.sentence(word_count: 3),
+      description: Faker::Lorem.paragraph,
+      tags: Faker::Lorem.words(number: 2).join(','),
+      image_url: Faker::LoremFlickr.image(size: '400x300', search_terms: ['business']),
+      programming_date_to_post: Faker::Time.forward(days: rand(1..30)).iso8601,
+      team_member: team_members.sample,
+      strategy: strategy
     )
   end
 end
+
+Rails.logger.debug 'Seeding completed successfully!'

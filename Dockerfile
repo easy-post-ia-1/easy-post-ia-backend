@@ -42,8 +42,8 @@ RUN apt-get update -qq && \
 COPY Gemfile Gemfile.lock /rails/
 
 RUN gem update --system
-RUN gem install bundler -i '2.6.3'
-RUN bundle _2.6.3_ install --no-cache && \
+RUN gem install bundler -i '2.6.5'
+RUN bundle _2.6.5_ install --no-cache && \
   rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
   bundle exec bootsnap precompile --gemfile
 RUN gem install foreman

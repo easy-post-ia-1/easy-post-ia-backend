@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
-      post '/create_strategy', to: 'strategies#create'
+      post '/strategy/create', to: 'strategies#create'
 
       mount Rswag::Ui::Engine => '/docs' unless Rails.env.production?
       mount Rswag::Api::Engine => '/docs' unless Rails.env.production?

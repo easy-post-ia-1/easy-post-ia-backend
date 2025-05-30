@@ -2,7 +2,21 @@
 
 This document lists breaking changes for each major release.
 
-## v0.0.7 (08/02/2025)
+## v0.0.8 (29/05/2025)
+
+- Feature, KAN-32, KAN-58: Refactor Docker and application files for improved structure and functionality
+
+- Update docker-compose.yml to correct service names and health checks.
+- Modify Dockerfile to upgrade bundler version.
+- Change gemspec version from 0.0.6 to 0.0.8.
+- Adjust routes for strategy creation endpoint.
+- Enhance StrategiesController to include user authentication and improve response structure.
+- Refactor strategy status management in the Strategy model.
+- Update Sidekiq job handling for better error management and logging.
+- Revise seed data generation for users, companies, teams, and strategies using Faker for randomness.
+- Improve test coverage for image generation helper methods.
+
+## v0.0.7 (08/03/2025)
 
 - Feature, KAN-53, KAN-54, KAN-55: Enhance post creation and authentication flow.
 

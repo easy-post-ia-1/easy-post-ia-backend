@@ -1,2 +1,3 @@
 web: bin/rails server -p ${API_PORT:-3000} -b ${BIND_PORT:-0.0.0.0}
 css: bin/rails tailwindcss:watch
+

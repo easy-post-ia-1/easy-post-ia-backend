@@ -21,16 +21,32 @@ class Strategy < ApplicationRecord
   # Enum definition for status startegy
   enum :status, {
     pending: 0,
-    in_progress: 1,
-    completed: 2,
-    failed: 3,
-    cancelled: 4,
-    approved: 5,
-    scheduled: 6
+    in_progress_scheduling: 1,
+    in_progress_config: 2,
+    in_progress_posting: 3,
+    completed: 4,
+    failed: 5,
+    failed_img: 6,
+    failed_text: 8,
+    failed_system: 9,
+    failed_social_network: 10,
+    cancelled: 11,
+    approved: 12,
+    scheduled: 13,
+    posted: 14
   }
 
   # Validations
-  validates :from_schedule, :to_schedule, presence: true
+  # validates :from_schedule, :to_schedule,
   validates :description, presence: true, allow_blank: true
-  validates :status, presence: true
+  validates :status, presence: true, inclusion: { in: statuses.keys }
+
+  before_validation :set_default_status, on: :create
+
+  private
+
+  def set_default_status
+    self.status ||= :pending
+    self.description ||= ''
+  end
 end

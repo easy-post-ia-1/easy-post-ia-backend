@@ -6,18 +6,18 @@ require 'sidekiq-cron'
 class CreateMarketingStrategyJob < ApplicationJob
   queue_as :default
 
-  def perform(config_post:)
+  def perform(config_post)
     Rails.logger.info 'Processing strategy...'
     Rails.logger.info "From: #{config_post[:from_schedule]}, To: #{config_post[:to_schedule]}, Description: #{config_post[:description]}"
 
-    st = Strategy.find(config_post[:strategy_id])
-    st.update!(status: :in_progress)
+    st = Strategy.find_or_create_by(id: config_post[:strategy_id].presence)
+    st.update!(status: :in_progress_config)
 
     begin
       result = Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper.build_posts_ia(
         user_prompt: config_post[:description],
         options: {
-          strategy_id: st.id,
+          strategy_id: st&.id,
           creator_id: config_post[:creator_id]
         }
       )
@@ -26,28 +26,31 @@ class CreateMarketingStrategyJob < ApplicationJob
       if result[:status] == :success && result[:posts].present?
         result[:posts].each do |post_id|
           job_name = "PublishSocialNetworkPostJob-#{post_id}-#{Time.now.to_i}"
-          res_post = Sidekiq::Cron::Job.create(
+          schedule_post = Sidekiq::Cron::Job.new(
             name: job_name,
             cron: Post.programming_date_to_cron(post_id),
             class: 'PublishSocialNetworkPostJob',
             args: { post_id: post_id, creator_id: config_post[:creator_id] }
           )
 
-          res_posts.push(res_post)
+          next unless schedule_post.valid?
+
+          schedule_post.save
+          res_posts.push(schedule_post)
         end
 
-        st.update!(status: :scheduled)
-        { status: :success, message: 'Posts scheduled', posts: res_posts }
+        st.update!(status: :in_progress_scheduling)
+        { status: :success, message: 'Posts scheduled', posts: res_posts, strategy_id: st&.id }
       else
         st.update!(status: :failed)
-        { status: :error, message: 'No posts created', posts: [] }
+        { status: :error, message: 'No posts created', posts: [], strategy_id: st&.id }
       end
     rescue StandardError => e
       Rails.logger.error("Error while building posts: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
 
       st.update!(status: :failed)
-      { status: :error, message: 'An error occurred', posts: [] }
+      { status: :error, message: 'An error occurred', posts: [], strategy_id: st&.id }
     end
   end
 end
