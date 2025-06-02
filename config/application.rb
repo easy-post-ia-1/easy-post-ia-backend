@@ -26,9 +26,7 @@ module EasyPostIaBackend
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-    if Rails.env.development?
-      config.web_console.whitelisted_ips = ['192.168.65.1', '172.21.0.1', '127.0.0.1', '172.18.0.1']
-    end
+    config.web_console.allowed_ips = ['192.168.65.1', '172.21.0.1', '127.0.0.1', '172.18.0.1'] if Rails.env.development?
     config.active_job.queue_adapter = :sidekiq
   end
 end

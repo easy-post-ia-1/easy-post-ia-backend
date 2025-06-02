@@ -38,28 +38,28 @@ RSpec.describe Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper do
     end
   end
 
-  #### Tests for generate_image method
-  # describe '.generate_image' do
-  #  it 'generates and uploads image when successful' do
-  #    prompt = 'image prompt'
-  #    options = { post_id: 1 }
-  #    response_body = { 'artifacts' => [{ 'base64' => 'base64data' }] }.to_json
-  #    response = double('response', body: double('body', string: response_body))
-  #    allow(bedrock_client).to receive(:invoke_model).and_return(response)
-  #    allow(ArtifactsHelper).to receive(:upload_base64_to_s3)
-  #      .with('base64data', anything).and_return('https://s3.url/image.jpg')
-  #
-  #    result = described_class.generate_image(prompt, options)
-  #    expect(result[:data]).to eq('https://s3.url/image.jpg')
-  #  end
-  #
-  #  it 'returns error when Bedrock raises an exception' do
-  #    allow(bedrock_client).to receive(:invoke_model)
-  #      .and_raise(Aws::Bedrock::Errors::ServiceError.new('context', 'Bedrock error'))
-  #    result = described_class.generate_image('prompt', {})
-  #    expect(result[:error]).to eq('Bedrock error')
-  #  end
-  # end
+  ### Tests for generate_image method
+  describe '.generate_image' do
+    it 'generates and uploads image when successful' do
+      prompt = 'image prompt'
+      options = { post_id: 1 }
+      response_body = { 'artifacts' => [{ 'base64' => 'base64data' }] }.to_json
+      response = double('response', body: double('body', string: response_body))
+      allow(bedrock_client).to receive(:invoke_model).and_return(response)
+      allow(ArtifactsHelper).to receive(:upload_base64_to_s3)
+        .with('base64data', anything).and_return('https://s3.url/image.jpg')
+
+      result = described_class.generate_image(prompt, options)
+      expect(result[:data]).to eq('https://s3.url/image.jpg')
+    end
+
+    it 'returns error when Bedrock raises an exception' do
+      allow(bedrock_client).to receive(:invoke_model)
+        .and_raise(Aws::Bedrock::Errors::ServiceError.new('context', 'Bedrock error'))
+      result = described_class.generate_image('prompt', {})
+      expect(result[:error]).to eq('Bedrock error')
+    end
+  end
 
   ### Tests for build_posts_ia method
   describe '.build_posts_ia' do

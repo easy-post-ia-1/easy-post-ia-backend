@@ -41,7 +41,7 @@ module Api
                 strategy: strategy
               )
 
-              s3_url = generate_image(post_data[:image_prompt], { post_id: post_data[:id] })
+              s3_url = generate_image(post_data['image_prompt'], { post_id: post_data['id'] })
               post.image_url = s3_url[:data] if s3_url[:data].present?
               post.save
 
@@ -56,7 +56,7 @@ module Api
             { status: :success, posts: post_ids }
           end
 
-          def self.generate_image(_prompt = '', options = {})
+          def self.generate_image(prompt = '', options = {})
             body = {
               text_prompts: [
                 {
@@ -67,20 +67,22 @@ module Api
               cfg_scale: options[:cfg_scale] || 8,
               seed: options[:seed] || 42,
               steps: options[:steps] || 50,
-              width: options[:width] || 900,
-              height: options[:height] || 1600
+              width: options[:width] || 512,
+              height: options[:height] || 512
             }
-            response = bedrock_client.invoke_model(
-              model_id: 'stability.stable-diffusion-xl-v1',
-              content_type: 'application/json',
-              accept: 'application/json',
-              body: body.to_json
-            )
 
-            body = JSON.parse(response.body.string)
-            img_base64 = body['artifacts'][0]['base64']
-            s3_url = ArtifactsHelper.upload_base64_to_s3(img_base64,
-                                                         "post-id-#{options[:post_id]}_img-#{SecureRandom.uuid}.jpg")
+            # response = bedrock_client.invoke_model(
+            #   model_id: 'stability.stable-diffusion-xl-v1',
+            #   content_type: 'application/json',
+            #   accept: 'application/json',
+            #   body: body.to_json
+            # )
+            #
+            # body = JSON.parse(response.body.string)
+            # img_base64 = body['artifacts'][0]['base64']
+            # s3_url = ArtifactsHelper.upload_base64_to_s3(img_base64,
+            #                                              "post-id-#{options[:post_id]}_img-#{SecureRandom.uuid}.jpg")
+            s3_url = 'https://easy-post-ia-backend-post-images.s3.us-east-2.amazonaws.com/post-id-_img-4c24c058-1798-43dd-a7e4-8880b89e340e.jpg'
             Rails.logger.info("Generated image: #{s3_url}") if s3_url.present?
             { status: body['results'], data: s3_url }
           rescue Aws::Bedrock::Errors::ServiceError => e
@@ -89,21 +91,40 @@ module Api
           end
 
           def self.generate_text(prompt, _options = {})
-            body = { prompt: prompt, temperature: 0.7, top_p: 1 }
-            response = bedrock_client.invoke_model(
-              model_id: 'meta.llama3-70b-instruct-v1:0',
-              content_type: 'application/json',
-              accept: 'application/json',
-              body: body.to_json
-            )
+            # body = { prompt: prompt, temperature: 0.7, top_p: 1 }
+            # response = bedrock_client.invoke_model(
+            #   model_id: 'meta.llama3-70b-instruct-v1:0',
+            #   content_type: 'application/json',
+            #   accept: 'application/json',
+            #   body: body.to_json
+            # )
+            #
+            # generation = JSON.parse(response.body.string)['generation'].match(/\[.*\]/m).to_s
+            # body = JSON.parse(generation)
+            body = example_body_text
 
-            generation = JSON.parse(response.body.string)['generation'].match(/\[.*\]/m).to_s
-            body = JSON.parse(generation)
             Rails.logger.info("Generated text: #{body}")
             { status: body.present? ? :success : :failed, posts: body }
           rescue Aws::Bedrock::Errors::ServiceError => e
             Rails.logger.error("Failed to generate text: #{e.message}")
             { error: e.message }
+          end
+
+          def self.example_body_text
+            [{ 'title' => 'Boost Your Business!',
+               'description' =>
+    'Stay ahead of the competition with our expert marketing strategies. Learn how to increase your online visibility and drive sales.',
+               'image_prompt' =>
+    'A graphic with a rocket ship blasting off, surrounded by business-related icons.',
+               'tags' => ['#marketing', '#business', '#growth'],
+               'programming_date_to_post' => '2025-03-11T10:00:00+00:00' },
+             { 'title' => 'Spring into Action!',
+               'description' =>
+               'As the seasons change, refresh your marketing approach. Get tips on how to create engaging content and attract new customers.',
+               'image_prompt' =>
+               'A spring-themed graphic with a calendar, flowers, and a briefcase.',
+               'tags' => ['#spring', '#marketing', '#newbeginnings'],
+               'programming_date_to_post' => '2025-03-18T14:00:00+00:00' }]
           end
         end
       end

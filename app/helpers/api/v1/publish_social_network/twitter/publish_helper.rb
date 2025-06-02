@@ -25,12 +25,12 @@ module Api
             post = Post.find(post_id)
             return if post.blank?
 
+            st.update!(status: :in_progress_posting)
+            st = post.strategy
             publish_tweet(post)
-
-            st.update!(status: :completed)
           rescue StandardError => e
             st.update!(status: :failed)
-            Rails.logger.error "Twitter post failed: #{e.message}"
+            Rails.logger.error "Twitter post failed: #{e.message} - Post id #{post_id}"
           end
 
           def self.publish_tweet(post)
@@ -46,13 +46,17 @@ module Api
                              media: { media_ids: [media['media_id_string']] } }
               tweet = twitter_client.post('tweets', tweet_body.to_json)
 
+              st.update!(status: :posted)
               Rails.logger.info "Tweet posted successfully with data: #{tweet['data']['id']}"
             end
           rescue OpenURI::HTTPError => e
+            st.update!(status: :failed)
             Rails.logger.error "Failed to download the image: #{e.message}"
           rescue X::Error => e
+            st.update!(status: :failed_social_network)
             Rails.logger.error "X API Error: #{e.message}"
           rescue StandardError => e
+            st.update!(status: :failed_system)
             Rails.logger.error "An unexpected error occurred: #{e.message}"
           end
         end

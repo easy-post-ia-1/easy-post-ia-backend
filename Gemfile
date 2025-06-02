@@ -85,6 +85,7 @@ gem 'aws-sdk-bedrockruntime', '~> 1.35'
 gem 'aws-sdk-s3', '~> 1.177'
 
 gem 'discard', '~> 1.2' # Soft delete fields.
+gem 'foreman', '~> 0.87.2'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
