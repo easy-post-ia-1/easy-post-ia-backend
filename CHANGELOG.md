@@ -2,6 +2,18 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.9 (01/06/2025)
+
+Update Docker configuration and dependencies for improved functionality
+
+- Comment out the entrypoint command in docker-compose.yml for flexibility.
+- Update healthcheck command to use a custom script.
+- Upgrade PostgreSQL image version in docker-compose.yml.
+- Modify Dockerfile to streamline installation of dependencies and ensure proper bundler version.
+- Add foreman gem to Gemfile for process management.
+- Update Procfile.dev to simplify web server command.
+- Adjust dev script to ensure proper environment setup and command execution.
+
 ## v0.0.8 (29/05/2025)
 
 - Feature, KAN-32, KAN-58: Refactor Docker and application files for improved structure and functionality

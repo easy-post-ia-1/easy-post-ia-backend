@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: bash -c "./bin/docker-entrypoint"
+    # command: bash -c "./bin/docker-entrypoint"
     user: root
     image: easy-post-ia-back:${ENVIRONMENT_RAILS}
     container_name: easy-post-ia-back
@@ -21,8 +21,9 @@ services:
       - "${API_PORT}:${API_PORT}"
     volumes:
       - .:/rails
+      # - bundle:/usr/local/bundle
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:3000/up"]
+      test: ["CMD", "/bin/bash", "-c", "./healthcheck.sh"]
       interval: 200s
       retries: 3
       start_period: 50s
@@ -31,7 +32,7 @@ services:
       - easy-post-ia-backend-network
   easy-post-ia-postgresdb:
     container_name: easy-post-ia-pg_db
-    image: postgres:latest
+    image: postgres:16.9
     ports:
       - "${POSTGRES_DB_PORT}:${POSTGRES_DB_PORT}"
     environment:
@@ -70,6 +71,7 @@ services:
     depends_on:
       - easy-post-ia-redis
       - easy-post-ia-postgresdb
+      - easy-post-ia-back
     volumes:
       - .:/rails
     env_file:
@@ -83,3 +85,4 @@ networks:
 volumes:
   pg_data:
   redis_data:
+  # bundle:
