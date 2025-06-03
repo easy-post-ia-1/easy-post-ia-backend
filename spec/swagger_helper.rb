@@ -88,6 +88,16 @@ RSpec.configure do |config|
             #   status: { '$ref': '#/components/schemas/StatusError' },
             #   errors: { type: :array, items: { type: :string }, example: ["Validation failed: Details..."] }
             # }
+          },
+          Pagination: {
+            type: :object,
+            properties: {
+              page: { type: :integer, example: 1, description: 'Current page number' },
+              per_page: { type: :integer, example: 10, description: 'Items per page' },
+              pages: { type: :integer, example: 5, description: 'Total number of pages' },
+              count: { type: :integer, example: 42, description: 'Total number of items' }
+            },
+            required: ['page', 'per_page', 'pages', 'count']
           }
         }
       }

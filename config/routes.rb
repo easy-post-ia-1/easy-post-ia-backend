@@ -14,7 +14,10 @@ Rails.application.routes.draw do
       get '/me/company_social_status', to: 'companies#social_network_status'
       resources :companies, only: [:show] # Provides GET /api/v1/companies/:id
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
-      post '/strategy/create', to: 'strategies#create'
+
+      # Routes for StrategiesController
+      resources :strategies, only: [:index] # For GET /api/v1/strategies
+      post '/strategy/create', to: 'strategies#create' # Existing custom route for create
 
       mount Rswag::Ui::Engine => '/docs' unless Rails.env.production?
       mount Rswag::Api::Engine => '/docs' unless Rails.env.production?
