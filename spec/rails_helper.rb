@@ -3,6 +3,15 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
+
+# Set a consistent DEVISE_JWT_SECRET_KEY for tests if not already set
+# This should be done before `config/environment` is loaded if Devise initializer uses it directly.
+# However, Devise initializer might fetch it at runtime. For safety, set it early.
+ENV['DEVISE_JWT_SECRET_KEY'] ||= 'test_secret_key_for_devise_jwt_min_32_chars_long_enough'
+if ENV['DEVISE_JWT_SECRET_KEY'].length < 32
+  raise "DEVISE_JWT_SECRET_KEY for test is too short!"
+end
+
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
@@ -120,16 +129,28 @@ RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include Warden::Test::Helpers
+  config.include ApiHelpers, type: :request # Include custom API helpers
 
   config.before(:suite) do
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation)
+    # Set default strategies
+    DatabaseCleaner[:active_record].strategy = :transaction
+    # DatabaseCleaner[:redis].strategy = :deletion # Default for Redis tests - Commented out for now
+
+    # Initial clean before the suite runs
+    # For ActiveRecord, use truncation.
+    DatabaseCleaner[:active_record].clean_with(:truncation)
+    # DatabaseCleaner[:redis].clean_with(:deletion) # Commented out for now
   end
 
-  config.around do |example|
-    DatabaseCleaner.cleaning do
+  config.around(:each) do |example|
+    # Specify cleaning for ActiveRecord only if Sequel/Redis are not intentionally used/configured
+    DatabaseCleaner[:active_record].cleaning do
       example.run
     end
+    # If other ORMs were intentionally used, their specific cleaning blocks would go here:
+    # DatabaseCleaner[:redis].cleaning do
+    #   example.run
+    # end
   end
 end
 

@@ -1,72 +1,140 @@
 require 'rails_helper'
+require 'sidekiq/testing' # Required for some Sidekiq test helpers
 
-# TODO: Change sidekiq folders and use jobs folder
-RSpec.describe CreateMarketingStrategyJob, type: :job do
+RSpec.describe PublishSocialNetworkPostJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:strategy) { create(:strategy, status: :pending) }
-  let(:creator) { create(:user) }
-  let(:config_post) do
-    {
-      strategy_id: strategy.id,
-      creator_id: creator.id,
-      from_schedule: '2023-10-01',
-      to_schedule: '2023-10-31',
-      description: 'Generate posts for Q4 marketing campaign'
-    }
+  let(:company) { create(:company) }
+  let(:team) { create(:team, company: company) }
+  let(:strategy) { create(:strategy) } # Create strategy first
+  # Ensure post factory correctly associates with team and strategy.
+  let!(:post_record) { create(:post, team: team, strategy: strategy) }
+
+  # Mock the actual Twitter client instance and media uploader
+  let(:mock_x_client) { instance_double(X::Client) }
+  let(:mock_x_media_uploader) { class_double(X::MediaUploader).as_stubbed_const } # Stubs class methods
+
+
+  before do
+    # Default stub for X::Client.new to return our mock client
+    allow(X::Client).to receive(:new).and_return(mock_x_client)
+    # Default successful response for tweet posting
+    allow(mock_x_client).to receive(:post).and_return({ 'data' => { 'id' => 'tweet123' } })
+    # Default successful response for media uploading
+    allow(mock_x_media_uploader).to receive(:upload).and_return({ 'media_id_string' => 'media123' })
+    # Mock image download via URI.open
+    allow(URI).to receive(:open).and_return(double("image_file", read: "image_data"))
   end
 
-  describe '#perform' do
-    context 'when the job executes successfully' do
-      before do
-        allow(Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper).to receive(:build_posts_ia)
-          .and_return({ status: :success, posts: [1, 2, 3] })
-      end
+  # Define the subject for performing the job with args hash
+  subject(:perform_job) { described_class.new.perform({ 'post_id' => post_record.id.to_s }) }
 
-      it 'updates the strategy status to :scheduled and schedules posts' do
-        expect(Sidekiq::Cron::Job).to receive(:create).exactly(3).times.and_return(true)
-
-        result = described_class.perform_now(config_post: config_post)
-
-        expect(strategy.reload.status).to eq('scheduled')
-        expect(result[:status]).to eq(:success)
-        expect(result[:message]).to eq('Posts scheduled')
-        expect(result[:posts].count).to eq(3)
-      end
+  context 'when company has valid Twitter credentials' do
+    let!(:twitter_credentials) do
+      create(:credentials_twitter, company: company,
+        api_key: 'valid_key', api_key_secret: 'valid_secret',
+        access_token: 'valid_token', access_token_secret: 'valid_token_secret')
     end
 
-    context 'when no posts are created' do
-      before do
-        allow(Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper).to receive(:build_posts_ia)
-          .and_return({ status: :success, posts: [] })
-      end
+    it 'calls PublishHelper.post, attempts to publish, and updates strategy to :posted' do
+      # Expect X::Client.new to be called with specific credentials from the database
+      expect(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).to receive(:twitter_client).with(
+        api_key: 'valid_key',
+        api_key_secret: 'valid_secret',
+        access_token: 'valid_token',
+        access_token_secret: 'valid_token_secret'
+      ).and_return(mock_x_client) # Ensure it returns the already stubbed client
 
-      it 'updates the strategy status to :failed and returns an error message' do
-        result = described_class.perform_now(config_post: config_post)
+      # Expect the tweet posting mechanism of the client
+      expect(mock_x_client).to receive(:post).with('tweets', anything).and_return({ 'data' => { 'id' => 'tweet123' } })
 
-        expect(strategy.reload.status).to eq('failed')
-        expect(result[:status]).to eq(:error)
-        expect(result[:message]).to eq('No posts created')
-        expect(result[:posts]).to be_empty
-      end
+      perform_job
+      expect(strategy.reload.status).to eq('posted')
+    end
+  end
+
+  context 'when company has incomplete Twitter credentials' do
+    let!(:twitter_credentials) do
+      create(:credentials_twitter, company: company, api_key: 'valid_key', api_key_secret: nil) # Incomplete
     end
 
-    context 'when an error occurs during post creation' do
-      before do
-        allow(Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper).to receive(:build_posts_ia)
-          .and_raise(StandardError.new('Something went wrong'))
-      end
+    it 'does not attempt to publish and updates strategy to :failed' do
+      expect(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).not_to receive(:twitter_client)
+      expect(mock_x_client).not_to receive(:post) # Client's post method should not be called
 
-      it 'logs the error, updates the strategy status to :failed, and returns an error message' do
-        expect(Rails.logger).to receive(:error).at_least(:once)
+      perform_job
+      expect(strategy.reload.status).to eq('failed')
+    end
+  end
 
-        result = described_class.perform_now(config_post: config_post)
+  context 'when company has no Twitter credentials record' do
+    # No Credentials::Twitter record is created for the company in this context
+    it 'does not attempt to publish and updates strategy to :failed' do
+      expect(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).not_to receive(:twitter_client)
+      expect(mock_x_client).not_to receive(:post)
 
-        expect(strategy.reload.status).to eq('failed')
-        expect(result[:status]).to eq(:error)
-        expect(result[:message]).to eq('An error occurred')
-        expect(result[:posts]).to be_empty
-      end
+      perform_job
+      expect(strategy.reload.status).to eq('failed')
+    end
+  end
+
+  # context 'when post has no associated company' do
+  #   # This context is commented out because current model validations (Post requires TeamMember,
+  #   # TeamMember requires Team, Team requires Company) make it impossible for a Post
+  #   # to exist without a Company. The helper's check for `unless company` is defensive
+  #   # but this specific state might not be reachable with current factories/constraints.
+  #   # If this state *should* be possible, model/factory validations would need adjustment.
+  #
+  #   # To test this, we create a post that has no team.
+  #   # The Strategy needs to be associated with this post for the test to be meaningful.
+  #   let(:post_without_team) { create(:post, team: nil, strategy: strategy) }
+
+  #   subject(:perform_job_no_company) { described_class.new.perform({ 'post_id' => post_without_team.id.to_s }) }
+  #
+  #   it 'updates strategy to :failed and logs error' do
+  #     # The job will load the post, then the helper will find company is nil.
+  #     expect(Rails.logger).to receive(:error).with("Twitter post failed: Post id #{post_without_team.id} has no associated company.")
+  #     perform_job_no_company
+  #     expect(strategy.reload.status).to eq('failed') # Strategy is associated with post_without_team
+  #   end
+  # end
+
+  context 'when post_id is not found in the job' do
+    # This test assumes the job itself tries to find the Post.
+    # The job's structure is: find Post, then get strategy from Post.
+    # If Post.find fails, strategy is never loaded by the job.
+    it 'logs an error from the job and does not proceed' do
+      invalid_post_id_str = "-1"
+      # Mock Post.find to raise RecordNotFound for this specific ID string.
+      allow(Post).to receive(:find).with(invalid_post_id_str).and_raise(ActiveRecord::RecordNotFound.new("Post not found with ID #{invalid_post_id_str}"))
+
+      # Check for the log message from the job's ActiveRecord::RecordNotFound rescue block
+      expect(Rails.logger).to receive(:error).with("Post not found: Post not found with ID #{invalid_post_id_str} - Post id #{invalid_post_id_str}")
+
+      # No strategy object would be found to check its status.
+      # We expect that no attempt is made to publish.
+      expect(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).not_to receive(:post)
+
+      described_class.new.perform({ 'post_id' => invalid_post_id_str })
+    end
+  end
+
+  context 'when X::Client.post raises X::Error' do
+    let!(:twitter_credentials) {
+      create(:credentials_twitter, company: company,
+             api_key: 'k', api_key_secret: 's',
+             access_token: 't', access_token_secret: 'ts')
+    }
+    before do
+      # Ensure X::Client.new is stubbed to return the mock_x_client
+      allow(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).to receive(:twitter_client).and_return(mock_x_client)
+      # Stub the client's post method to raise X::Error
+      allow(mock_x_client).to receive(:post).and_raise(X::Error.new("Twitter API error"))
+    end
+
+    it 'updates strategy to :failed_social_network' do
+      perform_job
+      expect(strategy.reload.status).to eq('failed_social_network')
     end
   end
 end

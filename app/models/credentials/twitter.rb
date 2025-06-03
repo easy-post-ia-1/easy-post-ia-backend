@@ -28,14 +28,7 @@ class Credentials::Twitter < ApplicationRecord
   encrypts :access_token
   encrypts :access_token_secret
 
-  after_initialize :set_defaults, if: :new_record?
-
-  private
-
-  def set_defaults
-    self.api_key ||= ENV.fetch('TWITTER_API_KEY', nil)
-    self.api_key_secret ||= ENV.fetch('TWITTER_API_KEY_SECRET', nil)
-    self.access_token ||= ENV.fetch('TWITTER_ACCESS_TOKEN', nil)
-    self.access_token_secret ||= ENV.fetch('TWITTER_ACCESS_TOKEN_SECRET', nil)
+  def has_credentials?
+    api_key.present? && api_key_secret.present? && access_token.present? && access_token_secret.present?
   end
 end
