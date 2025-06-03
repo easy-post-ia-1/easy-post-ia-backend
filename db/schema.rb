@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_12_16_220727) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_03_011138) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "hstore"
   enable_extension "plpgsql"
@@ -19,6 +19,17 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_16_220727) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "credentials_twitters", force: :cascade do |t|
+    t.text "api_key"
+    t.text "api_key_secret"
+    t.text "access_token"
+    t.text "access_token_secret"
+    t.bigint "company_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_credentials_twitters_on_company_id", unique: true
   end
 
   create_table "jwt_denylist", force: :cascade do |t|
@@ -97,6 +108,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_12_16_220727) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "credentials_twitters", "companies"
   add_foreign_key "posts", "strategies"
   add_foreign_key "posts", "team_members"
   add_foreign_key "team_members", "teams"
