@@ -35,11 +35,59 @@ RSpec.configure do |config|
       ],
       basePath: '/api/v1',
       components: {
+        # Removed the first, now duplicate, securitySchemes definition.
         securitySchemes: {
-          bearer_auth: {
+          Bearer: {
             type: :http,
             scheme: :bearer,
-            bearerFormat: 'JWT' # o el formato adecuado para tu token
+            bearerFormat: 'JWT'
+          }
+        },
+        schemas: {
+          StatusSuccess: { # Defines the structure of the 'status' object itself
+            type: :object,
+            properties: {
+              code: { type: :integer, example: 200 },
+              message: { type: :string, example: "Success" }
+            },
+            required: ['code', 'message']
+          },
+          StatusUnauthorized: { # Defines the structure of the 'status' object for unauthorized
+            type: :object,
+            properties: {
+              code: { type: :integer, example: 401 },
+              message: { type: :string, example: "Unauthorized" }
+            },
+            required: ['code', 'message']
+            # Note: The main response schema using this might add an 'errors' array separately
+            # if the controller for 401 sometimes returns errors (e.g. Devise does for failed login attempts)
+            # For a simple "token missing/invalid" 401, often no error body beyond status.
+          },
+          StatusNotFound: { # Defines the structure for a 'status' object for not found
+            type: :object,
+            properties: {
+              code: { type: :integer, example: 404 }, # Standard HTTP Not Found
+              message: { type: :string, example: "Resource not found" }
+            },
+            required: ['code', 'message']
+            # The main response schema using this will add the 'errors' array:
+            # properties: {
+            #   status: { '$ref': '#/components/schemas/StatusNotFound' },
+            #   errors: { type: :array, items: { type: :string }, example: ["Resource not found."] }
+            # }
+          },
+          StatusError: { # Defines the structure for a generic 'status' object for errors (e.g. 422)
+            type: :object,
+            properties: {
+              code: { type: :integer, example: 422 }, # Example: Unprocessable Entity
+              message: { type: :string, example: "Error" } # Or specific error message
+            },
+            required: ['code', 'message']
+            # The main response schema using this will add the 'errors' array:
+            # properties: {
+            #   status: { '$ref': '#/components/schemas/StatusError' },
+            #   errors: { type: :array, items: { type: :string }, example: ["Validation failed: Details..."] }
+            # }
           }
         }
       }

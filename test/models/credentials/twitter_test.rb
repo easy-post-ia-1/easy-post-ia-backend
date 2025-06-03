@@ -71,24 +71,61 @@ class Credentials::TwitterTest < ActiveSupport::TestCase
     assert_equal access_token_secret_plain, credentials.access_token_secret
   end
 
-  test "should populate default values from ENV" do
-    env_api_key = "env_api_key"
-    env_api_key_secret = "env_api_key_secret"
-    env_access_token = "env_access_token"
-    env_access_token_secret = "env_access_token_secret"
-
+  test "should NOT populate default values from ENV and attributes should be nil" do
     with_env_values(
-      "TWITTER_API_KEY" => env_api_key,
-      "TWITTER_API_KEY_SECRET" => env_api_key_secret,
-      "TWITTER_ACCESS_TOKEN" => env_access_token,
-      "TWITTER_ACCESS_TOKEN_SECRET" => env_access_token_secret
+      "TWITTER_API_KEY" => "env_api_key",
+      "TWITTER_API_KEY_SECRET" => "env_api_key_secret",
+      "TWITTER_ACCESS_TOKEN" => "env_access_token",
+      "TWITTER_ACCESS_TOKEN_SECRET" => "env_access_token_secret"
     ) do
-      credentials = Credentials::Twitter.new(company: @company)
-      assert_equal env_api_key, credentials.api_key
-      assert_equal env_api_key_secret, credentials.api_key_secret
-      assert_equal env_access_token, credentials.access_token
-      assert_equal env_access_token_secret, credentials.access_token_secret
+      credentials = Credentials::Twitter.new(company: @company) # No params other than company
+      assert_nil credentials.api_key
+      assert_nil credentials.api_key_secret
+      assert_nil credentials.access_token
+      assert_nil credentials.access_token_secret
     end
+  end
+
+  test "#has_credentials? should return true if all keys and tokens are present" do
+    credentials = Credentials::Twitter.new(
+      api_key: "key", api_key_secret: "secret", access_token: "token", access_token_secret: "secret", company: @company
+    )
+    assert credentials.has_credentials?
+  end
+
+  test "#has_credentials? should return false if api_key is missing" do
+    credentials = Credentials::Twitter.new(
+      api_key_secret: "secret", access_token: "token", access_token_secret: "secret", company: @company
+    )
+    assert_not credentials.has_credentials?
+  end
+
+  test "#has_credentials? should return false if api_key_secret is missing" do
+    credentials = Credentials::Twitter.new(
+      api_key: "key", access_token: "token", access_token_secret: "secret", company: @company
+    )
+    assert_not credentials.has_credentials?
+  end
+
+  test "#has_credentials? should return false if access_token is missing" do
+    credentials = Credentials::Twitter.new(
+      api_key: "key", api_key_secret: "secret", access_token_secret: "secret", company: @company
+    )
+    assert_not credentials.has_credentials?
+  end
+
+  test "#has_credentials? should return false if access_token_secret is missing" do
+    credentials = Credentials::Twitter.new(
+      api_key: "key", api_key_secret: "secret", access_token: "token", company: @company
+    )
+    assert_not credentials.has_credentials?
+  end
+
+  test "#has_credentials? should return false if all credentials are blank" do
+    credentials = Credentials::Twitter.new(
+      api_key: "", api_key_secret: "", access_token: "", access_token_secret: "", company: @company
+    )
+    assert_not credentials.has_credentials?
   end
 
   test "belongs_to company association" do

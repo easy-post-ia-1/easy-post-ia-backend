@@ -5,6 +5,156 @@
     "version": "v1"
   },
   "paths": {
+    "/me/company_social_status": {
+      "get": {
+        "summary": "Retrieves social network credential status for the current user's company",
+        "tags": [
+          "Companies",
+          "User Profile"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Social network status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "social_networks": {
+                      "type": "object",
+                      "properties": {
+                        "twitter": {
+                          "type": "object",
+                          "properties": {
+                            "has_credentials": {
+                              "type": "boolean",
+                              "example": true
+                            }
+                          },
+                          "required": [
+                            "has_credentials"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "twitter"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "social_networks"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusUnauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "summary": "Retrieves a specific company by ID",
+        "tags": [
+          "Companies"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the company",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company details retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "company": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Acme Corp"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "company"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": [
+                        "Company not found."
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/posts": {
       "get": {
         "summary": "Retrieves all posts",
@@ -772,10 +922,80 @@
   "basePath": "/api/v1",
   "components": {
     "securitySchemes": {
-      "bearer_auth": {
+      "Bearer": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "StatusSuccess": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Success"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "StatusUnauthorized": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 401
+          },
+          "message": {
+            "type": "string",
+            "example": "Unauthorized"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "StatusNotFound": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 404
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource not found"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "StatusError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 422
+          },
+          "message": {
+            "type": "string",
+            "example": "Error"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
       }
     }
   }

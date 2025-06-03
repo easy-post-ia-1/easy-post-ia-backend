@@ -13,7 +13,7 @@ begin
 
   if File.exist?(key_path) && File.exist?(content_path)
     master_key = File.read(key_path).strip
-    
+
     config_file = ActiveSupport::EncryptedFile.new(
       content_path: content_path,
       key_path: key_path, # Corrected: use key_path
@@ -22,12 +22,12 @@ begin
     )
     decrypted_credentials_yaml = config_file.read
     credentials = YAML.load(decrypted_credentials_yaml) || {}
-    
+
     ar_encrypt_creds = credentials['active_record_encryption']
 
     if ar_encrypt_creds && ar_encrypt_creds['primary_key']
       puts "Found primary_key. Configuring ActiveRecord::Encryption directly."
-      
+
       # Use values from credentials or generate new ones if missing
       # Ensure keys are in binary format if OpenSSL::Random.random_bytes is used,
       # or hex if that's what your KDF expects.
@@ -35,7 +35,7 @@ begin
       # if they are intended as raw keys.
       # However, ActiveRecord::Encryption.configure usually expects these as hex strings
       # and derives binary keys from them.
-      
+
       primary_h_key = ar_encrypt_creds['primary_key']
       deterministic_h_key = ar_encrypt_creds['deterministic_key'] || OpenSSL::Random.random_bytes(32).unpack1('H*')
       key_derivation_s = ar_encrypt_creds['key_derivation_salt'] || OpenSSL::Random.random_bytes(32).unpack1('H*')
