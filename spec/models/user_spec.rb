@@ -14,18 +14,82 @@
 #  username               :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  company_id             :bigint           not null
 #
 # Indexes
 #
+#  index_users_on_company_id            (company_id)
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
+# Foreign Keys
+#
+#  fk_rails_...  (company_id => companies.id)
+#
 require 'rails_helper'
 
-RSpec.describe User do
-  describe '#fields' do
-    it { is_expected.to have_db_column(:email).of_type(:string) }
-    it { is_expected.to have_db_column(:username).of_type(:string) }
-    it { is_expected.to have_db_column(:role).of_type(:string) }
+RSpec.describe User, type: :model do
+  let(:user) { create(:user) }
+  let(:admin) { create(:user, role: 'ADMIN') }
+  let(:employee) { create(:user, role: 'EMPLOYEE') }
+  let(:employer) { create(:user, role: 'EMPLOYER') }
+
+  it 'is valid with valid attributes' do
+    expect(user).to be_valid
+  end
+
+  it 'is not valid without a username' do
+    user.username = nil
+    expect(user).not_to be_valid
+    expect(user.errors[:username]).to include("can't be blank")
+  end
+
+  it 'is not valid without an email' do
+    user.email = nil
+    expect(user).not_to be_valid
+    expect(user.errors[:email]).to include("can't be blank")
+  end
+
+  it 'is not valid with a duplicate email' do
+    create(:user, email: 'duplicate@example.com')
+    duplicate_user = build(:user, email: 'duplicate@example.com')
+    expect(duplicate_user).not_to be_valid
+    expect(duplicate_user.errors[:email]).to include("has already been taken")
+  end
+
+  it 'is not valid with a duplicate username' do
+    create(:user, username: 'duplicate_username')
+    duplicate_user = build(:user, username: 'duplicate_username')
+    expect(duplicate_user).not_to be_valid
+    expect(duplicate_user.errors[:username]).to include("has already been taken")
+  end
+
+  it 'is not valid without a role' do
+    user.role = nil
+    expect(user).not_to be_valid
+    expect(user.errors[:role]).to include("can't be blank")
+  end
+
+  it 'is not valid with an invalid role' do
+    user.role = 'INVALID'
+    expect(user).not_to be_valid
+    expect(user.errors[:role]).to include("INVALID is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.")
+  end
+
+  it 'is valid with a valid role (ADMIN)' do
+    expect(admin).to be_valid
+  end
+
+  it 'is valid with a valid role (EMPLOYEE)' do
+    expect(employee).to be_valid
+  end
+
+  it 'is valid with a valid role (EMPLOYER)' do
+    expect(employer).to be_valid
+  end
+
+  describe 'associations' do
+    it { should have_many(:team_members) }
+    it { should have_many(:company_members) }
   end
 end

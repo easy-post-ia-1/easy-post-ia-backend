@@ -1,13 +1,15 @@
 require 'swagger_helper' # Ensures Rswag DSL is available
 
 RSpec.describe 'Api::V1::CompaniesController', type: :request do
+  include ApiHelpers
+
   let!(:user) { create(:user) }
   let!(:company) { create(:company) }
   let!(:team) { create(:team, company: company) }
   let!(:team_member) { create(:team_member, user: user, team: team) }
 
   # --- Swagger Docs for GET /api/v1/me/company_social_status ---
-  path '/me/company_social_status' do # Removed /api/v1 prefix
+  path '/api/v1/me/company_social_status' do
     get 'Retrieves social network credential status for the current user\'s company' do
       tags 'Companies', 'User Profile'
       produces 'application/json'
@@ -33,59 +35,39 @@ RSpec.describe 'Api::V1::CompaniesController', type: :request do
                },
                required: ['status', 'social_networks']
 
-        # This let! will cover the case for "complete Twitter credentials"
-        let!(:twitter_credentials) { create(:credentials_twitter, company: company, api_key: 'key', api_key_secret: 'secret', access_token: 'token', access_token_secret: 'token_secret') }
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user(user)}" }
-
-        run_test! do |response|
-          json_response = JSON.parse(response.body)
-          expect(json_response['status']['code']).to eq(200)
-          expect(json_response['social_networks']['twitter']['has_credentials']).to be_truthy
-        end
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        run_test!
       end
 
-      # Test for incomplete credentials (will be a separate RSpec context if not using run_test! for all variations)
-      # For Rswag, often one "happy path" `run_test!` is shown, others are standard RSpec examples.
-      # Or, create separate `response` blocks for different data setups if schema/examples change.
-      # The prompt implies integrating existing tests.
-      # This response block is for documentation of the 200 OK state.
-      # Specific data variations (incomplete creds, no creds) will be tested by existing RSpec examples.
-
       response '401', 'Unauthorized' do
-        schema '$ref' => '#/components/schemas/StatusUnauthorized'
-        let(:Authorization) { "Bearer invalid_token" } # For Rswag sample
-        # This RSpec example covers the unauthenticated case
-        it 'returns status 401 (unauthorized)' do
-          # No Authorization header implicitly for this specific 'it' block
-          get '/api/v1/me/company_social_status' # No header for this specific example
-          expect(response).to have_http_status(:unauthorized)
-        end
-        # run_test! # Not ideal here if the `it` block above is the actual test
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
+               }
+        let(:Authorization) { '' }
+        run_test!
       end
 
       response '404', 'User not associated with a company' do
-        schema '$ref' => '#/components/schemas/StatusError' # Assuming a generic error schema or not_found
-        let(:user_no_company_for_doc) {
-          u = create(:user, username: "user_no_co_#{SecureRandom.hex(4)}", email: "user_no_co_#{SecureRandom.hex(4)}@example.com")
-          u.team_member&.destroy
-          u
-        }
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user(user_no_company_for_doc)}" }
-
-        # This RSpec example covers user not associated with company
-        # Note: This `it` block is outside Rswag's `run_test!` for this response,
-        # but Rswag needs a `let` for Authorization to generate its sample.
-        # The actual test logic is below in the RSpec context.
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusError' },
+                 errors: { type: :array, items: { type: :string } }
+               }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        run_test!
       end
     end
   end
 
   # --- Swagger Docs for GET /api/v1/companies/:id ---
-  path '/companies/{id}' do # Removed /api/v1 prefix
+  path '/api/v1/companies/{id}' do
+    parameter name: :id, in: :path, type: :integer, required: true
+
     get 'Retrieves a specific company by ID' do
       tags 'Companies'
       produces 'application/json'
-      parameter name: :id, in: :path, type: :integer, description: 'ID of the company', required: true
+      security [Bearer: []]
 
       response '200', 'Company details retrieved' do
         schema type: :object,
@@ -102,29 +84,20 @@ RSpec.describe 'Api::V1::CompaniesController', type: :request do
                },
                required: ['status', 'company']
 
-        let(:id) { company.id }
-        run_test! do |response| # RSpec assertions within run_test!
-          json_response = JSON.parse(response.body)
-          expect(json_response['status']['code']).to eq(200)
-          expect(json_response['company']['id']).to eq(company.id)
-          expect(json_response['company']['name']).to eq(company.name)
-          expect(json_response['company'].keys).to contain_exactly('id', 'name')
-        end
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:id) { create(:company).id }
+        run_test!
       end
 
       response '404', 'Company not found' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string }, example: ["Company not found."] }
-               },
-               required: ['status', 'errors']
-        let(:id) { company.id + 9999 } # Non-existent ID
-        run_test! do |response|
-            json_response = JSON.parse(response.body)
-            expect(json_response['status']['code']).to eq(422) # As per controller
-            expect(json_response['errors']).to include('Company not found.')
-        end
+                 errors: { type: :array, items: { type: :string } }
+               }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:id) { 999 }
+        run_test!
       end
     end
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_03_011138) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_10_002125) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "hstore"
   enable_extension "plpgsql"
@@ -64,17 +64,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_03_011138) do
     t.json "error_response"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "strategies_tables", force: :cascade do |t|
-    t.datetime "from_schedule"
-    t.datetime "to_schedule"
-    t.string "description"
-    t.integer "status"
-    t.json "success_response"
-    t.json "error_response"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.bigint "company_id", null: false
+    t.bigint "team_member_id", null: false
+    t.index ["company_id"], name: "index_strategies_on_company_id"
+    t.index ["team_member_id"], name: "index_strategies_on_team_member_id"
   end
 
   create_table "team_members", force: :cascade do |t|
@@ -104,6 +97,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_03_011138) do
     t.datetime "updated_at", null: false
     t.string "username"
     t.string "role"
+    t.bigint "company_id", null: false
+    t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -111,6 +106,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_03_011138) do
   add_foreign_key "credentials_twitters", "companies"
   add_foreign_key "posts", "strategies"
   add_foreign_key "posts", "team_members"
+  add_foreign_key "strategies", "companies"
+  add_foreign_key "strategies", "team_members"
   add_foreign_key "team_members", "teams"
   add_foreign_key "teams", "companies"
+  add_foreign_key "users", "companies"
 end

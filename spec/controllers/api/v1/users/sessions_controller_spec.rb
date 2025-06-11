@@ -4,96 +4,88 @@ require 'rails_helper'
 
 # Test controller sessions
 RSpec.describe Api::V1::Users::SessionsController do
-  let(:user) { create(:user, email: 'test20@mail.com', username: 'test20', role: 'ADMIN') }
-
-  describe 'POST #create' do
-    context 'with valid credentials' do
-      before do
-        @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
-        sign_in user
-        post :create
-      end
-
-      it 'returns a successful sign-in response with user details' do
-        expect(response).to have_http_status(:ok)
-
-        expect(response.parsed_body['status']).to include(
-          'code' => 200,
-          'message' => 'Signed in successfully.'
-        )
-
-        expect(response.parsed_body['user']).to include(
-          'email' => 'test20@mail.com',
-          'username' => 'test20',
-          'role' => 'ADMIN'
-        )
-      end
-    end
-  end
-
-  describe 'DELETE #destroy' do
-    context 'when the user is signed in' do
-      before do
-        token = Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
-        request.headers['Authorization'] = "Bearer #{token}"
-        delete :destroy
-      end
-
-      it 'returns a successful sign-out response' do
-        expect(response).to have_http_status(:ok)
-
-        expect(response.parsed_body['status']).to include(
-          'code' => 200,
-          'message' => I18n.t('devise.sessions.signed_out')
-        )
-      end
-    end
-
-    context 'when there is no valid user token' do
-      before do
-        delete :destroy
-      end
-
-      it 'returns an unauthorized response for already signed-out user' do
-        expect(response).to have_http_status(:unauthorized)
-
-        expect(response.parsed_body['status']).to include(
-          'code' => 401,
-          'message' => I18n.t('devise.sessions.already_signed_out')
-        )
-      end
-    end
-  end
+  let(:user) { create(:user, role: 'ADMIN', username: 'test_user', email: 'test@example.com', password: 'password123') }
 
   describe 'GET #me' do
     context 'when the user is authenticated' do
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in user
-        token = Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
-        request.headers['Authorization'] = "Bearer #{token}"
-        get :me
       end
 
-      it 'returns the authenticated user data' do
+      it 'returns a successful response with user details' do
+        get :me
         expect(response).to have_http_status(:ok)
-
-        expect(response.parsed_body['user']).to include(
-          'email' => user.email,
-          'username' => user.username,
-          'role' => user.role
-        )
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+        expect(json_response['user']['id']).to eq(user.id)
+        expect(json_response['user']['username']).to eq(user.username)
+        expect(json_response['user']['email']).to eq(user.email)
+        expect(json_response['user']['role']).to eq(user.role)
       end
     end
 
     context 'when the user is not authenticated' do
+      it 'returns an unauthorized response' do
+        get :me
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  describe 'POST #create' do
+    context 'when the credentials are valid' do
+      it 'returns a successful response with user details' do
+        post :create, params: { email: user.email, password: 'password123' }
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+        expect(json_response['user']['id']).to eq(user.id)
+        expect(json_response['user']['username']).to eq(user.username)
+        expect(json_response['user']['email']).to eq(user.email)
+        expect(json_response['user']['role']).to eq(user.role)
+      end
+    end
+
+    context 'when the credentials are invalid' do
+      it 'returns an unauthorized response' do
+        post :create, params: { email: user.email, password: 'wrong_password' }
+        expect(response).to have_http_status(:unauthorized)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(422)
+        expect(json_response['errors']).to include('Invalid email or password')
+      end
+    end
+
+    context 'when the email does not exist' do
+      it 'returns an unauthorized response' do
+        post :create, params: { email: 'nonexistent@example.com', password: 'password123' }
+        expect(response).to have_http_status(:unauthorized)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(422)
+        expect(json_response['errors']).to include('Invalid email or password')
+      end
+    end
+  end
+
+  describe 'DELETE #destroy' do
+    context 'when the user is authenticated' do
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in user
-        get :me
       end
 
+      it 'returns a successful response' do
+        delete :destroy
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+      end
+    end
+
+    context 'when the user is not authenticated' do
       it 'returns an unauthorized response' do
+        delete :destroy
         expect(response).to have_http_status(:unauthorized)
       end
     end

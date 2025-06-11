@@ -13,8 +13,20 @@ module Api
         # GET /api/v1/posts
         def index
           page, page_size = pagination_params.values_at(:page, :page_size)
-          @pagy, @records = pagy(Post.where(team_member_id: current_user.team_member.id), items: page_size,
-                                                                                          page:)
+          from_date = params[:from_date]
+          to_date = params[:to_date]
+
+          posts_scope = Post.where(team_member_id: current_user.team_member.id)
+
+          if from_date.present?
+            posts_scope = posts_scope.where('programming_date_to_post >= ?', from_date)
+          end
+
+          if to_date.present?
+            posts_scope = posts_scope.where('programming_date_to_post <= ?', to_date)
+          end
+
+          @pagy, @records = pagy(posts_scope, items: page_size, page:)
 
           pagination = { page: @pagy.page, pages: @pagy.pages, count: @pagy.count }
           render json: success_response({ posts: @records, pagination: }), status: :ok

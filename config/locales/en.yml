@@ -43,9 +43,59 @@ en:
             role:
               blank: "Role can't be blank."
               inclusion: "%{value} is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN."
+        strategy: Strategy
+        post: Post
+    attributes:
+      strategy:
+        description: Description
+        from_schedule: Start Date
+        to_schedule: End Date
+        status: Status
+        post_ids: Posts
+      post:
+        content: Content
+        image_url: Image URL
+        status: Status
+        error_message: Error Message
+        social_media_id: Social Media
+        strategy_id: Strategy
 
   responses:
     success: "Request was successful."
     created: "Resource was successfully created."
     deleted: "Resource was successfully deleted."
     error: "There was an error processing your request."
+
+  strategy:
+    status:
+      pending: "Pending"
+      in_progress: "In Progress"
+      completed: "Completed"
+      failed: "Failed"
+
+  post:
+    status:
+      pending: "Pending"
+      publishing: "Publishing"
+      published: "Published"
+      failed_image: "Image Upload Failed"
+      failed_publish: "Publication Failed"
+      failed_network: "Network Error"
+      failed_auth: "Authentication Failed"
+
+  models:
+    strategy:
+      status:
+        pending: Pending
+        in_progress: In Progress
+        completed: Completed
+        failed: Failed
+    post:
+      status:
+        pending: Pending
+        publishing: Publishing
+        published: Published
+        failed_image: Failed to Upload Image
+        failed_publish: Failed to Publish
+        failed_network: Network Error
+        failed_auth: Authentication Error

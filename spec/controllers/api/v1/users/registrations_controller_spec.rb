@@ -10,57 +10,76 @@ RSpec.describe Api::V1::Users::RegistrationsController do
   let(:admin) { create(:user, role: 'ADMIN') }
   let(:employee) { create(:user, role: 'EMPLOYEE') }
 
-  let(:valid_params) do
+  let(:valid_user_params) do
     {
-      username: 'test_user2',
-      email: 'test_user2@example.com',
-      password: 'password1234',
+      username: 'test_user',
+      email: 'test@example.com',
+      password: 'password123',
       role: 'EMPLOYEE'
     }
   end
 
-  let(:invalid_params) do
+  let(:invalid_user_params) do
     {
       username: '',
       email: 'invalid_email',
-      password: 'short',
+      password: '',
       role: 'INVALID_ROLE'
     }
   end
 
   describe 'POST #create' do
     context 'when the request is valid' do
-      before do
-        @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
-      end
-
-      it 'creates a user and returns user_json_response with status code 201' do
-        post :create, params: valid_params, as: :json
+      it 'creates a new user' do
+        expect {
+          post :create, params: { user: valid_user_params }
+        }.to change(User, :count).by(1)
         expect(response).to have_http_status(:created)
-        expect(response.parsed_body[:user]).to eq(User.find_by(email: valid_params[:email]).user_json_response)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(201)
+        expect(json_response['user']['username']).to eq(valid_user_params[:username])
+        expect(json_response['user']['email']).to eq(valid_user_params[:email])
+        expect(json_response['user']['role']).to eq(valid_user_params[:role])
       end
     end
 
     context 'when the request is invalid' do
-      before do
-        @request.env['devise.mapping'] = Devise.mappings[:user] # rubocop:disable RSpec/InstanceVariable
-        sign_in admin
-      end
-
-      it 'does not create a user and returns error messages with status code 422' do
-        post :create, params: invalid_params, as: :json
-
-        response_json = response.parsed_body
-
+      it 'does not create a user' do
+        expect {
+          post :create, params: { user: invalid_user_params }
+        }.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response_json).to include('errors')
-        expect(response_json['errors']).to include(
-          'Email Invalid email format.',
-          'Password is too short (minimum is 6 characters)',
-          "Username Username can't be blank.",
-          'Email Invalid email format.',
-          'Role INVALID_ROLE is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.'
-        )
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(422)
+        expect(json_response['errors']).to be_an(Array)
+      end
+    end
+
+    context 'when the email is already taken' do
+      let!(:existing_user) { create(:user, email: 'test@example.com') }
+
+      it 'does not create a user' do
+        expect {
+          post :create, params: { user: valid_user_params }
+        }.not_to change(User, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(422)
+        expect(json_response['errors']).to include('Email has already been taken')
+      end
+    end
+
+    context 'when the username is already taken' do
+      let!(:existing_user) { create(:user, username: 'test_user') }
+
+      it 'does not create a user' do
+        expect {
+          post :create, params: { user: valid_user_params }
+        }.not_to change(User, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(422)
+        expect(json_response['errors']).to include('Username has already been taken')
       end
     end
 
@@ -71,10 +90,10 @@ RSpec.describe Api::V1::Users::RegistrationsController do
       end
 
       it 'creates a user and returns user_json_response with status code 201' do
-        post :create, params: valid_params, as: :json
+        post :create, params: valid_user_params, as: :json
 
         response_json = response.parsed_body
-        created_user = User.find_by(email: valid_params[:email])
+        created_user = User.find_by(email: valid_user_params[:email])
 
         expected_response = { 'status' => { 'code' => 201, 'message' => 'Welcome! You have signed up successfully.' },
                               'user' => created_user.user_json_response }

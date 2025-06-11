@@ -28,7 +28,7 @@
 #
 require 'rails_helper'
 
-RSpec.describe Post do
+RSpec.describe Post, type: :model do
   let(:strategy) do
     create(:strategy, from_schedule: Time.current, to_schedule: 1.hour.from_now, status: :in_progress)
   end
@@ -63,5 +63,44 @@ RSpec.describe Post do
     it 'returns nil if the post does not exist' do
       expect(Post.programming_date_to_cron(nil)).to be_nil
     end
+  end
+
+  it 'is valid with valid attributes' do
+    expect(post).to be_valid
+  end
+
+  it 'is not valid without a title' do
+    post.title = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:title]).to include("can't be blank")
+  end
+
+  it 'is not valid without a description' do
+    post.description = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:description]).to include("can't be blank")
+  end
+
+  it 'is not valid without programming_date_to_post' do
+    post.programming_date_to_post = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:programming_date_to_post]).to include("can't be blank")
+  end
+
+  it 'is not valid without a team_member' do
+    post.team_member = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:team_member]).to include("must exist")
+  end
+
+  it 'is not valid without a strategy' do
+    post.strategy = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:strategy]).to include("must exist")
+  end
+
+  describe 'associations' do
+    it { should belong_to(:team_member) }
+    it { should belong_to(:strategy) }
   end
 end

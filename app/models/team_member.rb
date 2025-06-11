@@ -22,4 +22,8 @@
 class TeamMember < ApplicationRecord
   belongs_to :team
   belongs_to :user
+  has_many :posts
+  has_many :strategies
+
+  validates :user_id, uniqueness: { scope: :team_id }
 end

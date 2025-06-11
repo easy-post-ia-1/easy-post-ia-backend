@@ -14,11 +14,17 @@
 #  username               :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  company_id             :bigint           not null
 #
 # Indexes
 #
+#  index_users_on_company_id            (company_id)
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (company_id => companies.id)
 #
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
@@ -27,13 +33,15 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
-  validates :username, presence: true
+  belongs_to :company
+  has_one :team_member
+  has_one :team, through: :team_member
+  has_many :strategies, through: :team_member, source: :strategies
+
+  validates :username, presence: true, uniqueness: true
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }, uniqueness: true
   validates :role, presence: true,
                    inclusion: { in: %w[EMPLOYER EMPLOYEE ADMIN], message: :inclusion }
-
-  has_one :team_member, dependent: :destroy
-  has_one :team, through: :team_member
 
   def user_json_response
     serializable_hash(except: %i[id created_at updated_at])

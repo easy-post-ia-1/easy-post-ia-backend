@@ -28,7 +28,23 @@ describe 'Users API' do
         required: %w[username email password role]
       }
 
-      response '201', 'User successfully created' do
+      response '201', 'User created successfully' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
+                 user: {
+                   type: :object,
+                   properties: {
+                     id: { type: :integer, example: 1 },
+                     username: { type: :string, example: 'test_user' },
+                     email: { type: :string, example: 'test_user@example.com' },
+                     role: { type: :string, example: 'EMPLOYEE' }
+                   },
+                   required: ['id', 'username', 'email', 'role']
+                 }
+               },
+               required: ['status', 'user']
+
         let(:user) do
           {
             username: 'test_user',
@@ -37,54 +53,15 @@ describe 'Users API' do
             role: 'EMPLOYEE'
           }
         end
-
-        schema type: :object,
-               properties: {
-                 status: {
-                   type: :object,
-                   properties: {
-                     code: { type: :integer, example: 201 },
-                     message: { type: :string, example: 'User successfully created' }
-                   }
-                 },
-                 user: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer, example: 1 },
-                     username: { type: :string, example: 'test_user' },
-                     email: { type: :string, example: 'test_user@example.com' },
-                     role: { type: :string, example: 'EMPLOYEE' }
-                   }
-                 }
-               }
-
-        xit do |response|
-          expect(response.status).to eq(201)
-          expect(response.content_type).to eq('application/json')
-          json_response = JSON.parse(response.body)
-          expect(json_response['status']['code']).to eq(201)
-          expect(json_response['status']['message']).to eq('User successfully created')
-          expect(json_response['user']).to include('id', 'username', 'email', 'role')
-        end
+        run_test!
       end
 
-      response '422', 'Invalid request or validation errors' do
+      response '422', 'Validation error' do
         schema type: :object,
                properties: {
-                 status: {
-                   type: :object,
-                   properties: {
-                     code: { type: :integer, example: 422 },
-                     message: { type: :string, example: 'Validation failed' }
-                   }
-                 },
-                 errors: {
-                   type: :array,
-                   items: { type: :string },
-                   example: ['Username can\'t be blank', 'Email is invalid', 'Role is not included in the list']
-                 }
+                 status: { '$ref' => '#/components/schemas/StatusError' },
+                 errors: { type: :array, items: { type: :string } }
                }
-
         let(:user) do
           {
             username: '',
@@ -93,15 +70,7 @@ describe 'Users API' do
             role: 'INVALID_ROLE'
           }
         end
-
-        xit do |response|
-          expect(response.status).to eq(422)
-          expect(response.content_type).to eq('application/json')
-          json_response = JSON.parse(response.body)
-          expect(json_response['status']['code']).to eq(422)
-          expect(json_response['status']['message']).to eq('Validation failed')
-          expect(json_response['errors']).to be_an(Array)
-        end
+        run_test!
       end
 
       response '401', 'Unauthorized access' do
