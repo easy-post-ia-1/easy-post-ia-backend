@@ -11,6 +11,18 @@
 #
 FactoryBot.define do
   factory :company do
-    name { 'Super company test' }
+    name { Faker::Company.name }
+
+    trait :with_twitter_credentials do
+      after(:create) do |company|
+        create(:credentials_twitter, company: company)
+      end
+    end
+
+    trait :with_incomplete_twitter_credentials do
+      after(:create) do |company|
+        create(:credentials_twitter, company: company, api_key: 'key', api_key_secret: nil)
+      end
+    end
   end
 end

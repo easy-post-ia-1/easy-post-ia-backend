@@ -1,8 +1,6 @@
-# frozen_string_literal: true
-
 require 'rails_helper'
 
-RSpec.describe Api::V1::Posts::PostsController do
+RSpec.describe Api::V1::StrategiesController do
   let(:team) { create(:team) }
   let(:team_employee) { create(:team) }
   let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com') }
@@ -13,22 +11,18 @@ RSpec.describe Api::V1::Posts::PostsController do
   let!(:strategy_employee) { create(:strategy) }
   let!(:admin_posts) { create_list(:post, 3, team_member: admin_team_member, strategy: strategy_admin) }
   let!(:employee_posts) { create_list(:post, 2, team_member: employee_team_member, strategy: strategy_employee) }
-  let(:invalid_post_params) do
+  let(:invalid_strategy_params) do
     {
-      title: '',
-      description: '',
-      tags: '',
-      programming_date_to_post: '',
-      team_member_id: nil
+      from_schedule: '',
+      to_schedule: '',
+      description: ''
     }
   end
-  let(:valid_post_params) do
+  let(:valid_strategy_params) do
     {
-      title: 'Sample Post',
-      description: 'This is a sample post description',
-      tags: 'example,post',
-      programming_date_to_post: '2024-11-26T00:00:00Z',
-      team_member_id: admin_team_member.id
+      from_schedule: '2024-11-26T00:00:00Z',
+      to_schedule: '2024-12-26T00:00:00Z',
+      description: 'Sample Strategy'
     }
   end
 
@@ -44,17 +38,8 @@ RSpec.describe Api::V1::Posts::PostsController do
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(200)
-        expect(json_response['posts']).to be_an(Array)
+        expect(json_response['strategies']).to be_an(Array)
         expect(json_response['pagination']).to include('page', 'per_page', 'pages', 'count')
-      end
-
-      it 'filters posts by date range' do
-        from_date = 1.day.ago.iso8601
-        to_date = 1.day.from_now.iso8601
-        get :index, params: { from_date: from_date, to_date: to_date }
-        expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
-        expect(json_response['posts']).to be_an(Array)
       end
     end
 
@@ -67,22 +52,23 @@ RSpec.describe Api::V1::Posts::PostsController do
   end
 
   describe 'GET #show' do
-    context 'when the post exists' do
+    context 'when the strategy exists' do
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in employee
       end
 
       it 'returns a successful response' do
-        get :show, params: { id: employee_posts[0].id }
+        get :show, params: { id: strategy_employee.id }
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(200)
-        expect(json_response['post']['id']).to eq(employee_posts[0].id)
+        expect(json_response['strategy']['id']).to eq(strategy_employee.id)
+        expect(json_response['strategy']['posts']).to be_an(Array)
       end
     end
 
-    context 'when the post does not exist' do
+    context 'when the strategy does not exist' do
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in admin
@@ -93,7 +79,7 @@ RSpec.describe Api::V1::Posts::PostsController do
         expect(response).to have_http_status(:not_found)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('Post not found')
+        expect(json_response['errors']).to include('Strategy not found')
       end
     end
 
@@ -104,11 +90,11 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'returns an unauthorized response' do
-        get :show, params: { id: admin_posts[0].id }
+        get :show, params: { id: strategy_admin.id }
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('You are not authorized to view this post')
+        expect(json_response['errors']).to include('You are not authorized to view this strategy')
       end
     end
   end
@@ -120,14 +106,14 @@ RSpec.describe Api::V1::Posts::PostsController do
         sign_in admin
       end
 
-      it 'creates a new post' do
+      it 'creates a new strategy' do
         expect {
-          post :create, params: { post: valid_post_params }
-        }.to change(Post, :count).by(1)
+          post :create, params: { strategy: valid_strategy_params }
+        }.to change(Strategy, :count).by(1)
         expect(response).to have_http_status(:created)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(201)
-        expect(json_response['post']['title']).to eq(valid_post_params[:title])
+        expect(json_response['strategy']['description']).to eq(valid_strategy_params[:description])
       end
     end
 
@@ -137,10 +123,10 @@ RSpec.describe Api::V1::Posts::PostsController do
         sign_in admin
       end
 
-      it 'does not create a post' do
+      it 'does not create a strategy' do
         expect {
-          post :create, params: { post: invalid_post_params }
-        }.not_to change(Post, :count)
+          post :create, params: { strategy: invalid_strategy_params }
+        }.not_to change(Strategy, :count)
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
@@ -156,12 +142,12 @@ RSpec.describe Api::V1::Posts::PostsController do
         sign_in admin
       end
 
-      it 'updates the post' do
-        put :update, params: { id: admin_posts[0].id, post: { title: 'Updated Title' } }
+      it 'updates the strategy' do
+        put :update, params: { id: strategy_admin.id, strategy: { description: 'Updated Strategy' } }
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(200)
-        expect(json_response['post']['title']).to eq('Updated Title')
+        expect(json_response['strategy']['description']).to eq('Updated Strategy')
       end
     end
 
@@ -171,15 +157,15 @@ RSpec.describe Api::V1::Posts::PostsController do
         sign_in admin
       end
 
-      it 'does not update the post' do
-        original_title = admin_posts[0].title
-        put :update, params: { id: admin_posts[0].id, post: { title: '' } }
+      it 'does not update the strategy' do
+        original_description = strategy_admin.description
+        put :update, params: { id: strategy_admin.id, strategy: { description: '' } }
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to be_an(Array)
-        admin_posts[0].reload
-        expect(admin_posts[0].title).to eq(original_title)
+        strategy_admin.reload
+        expect(strategy_admin.description).to eq(original_description)
       end
     end
 
@@ -190,11 +176,11 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'returns an unauthorized response' do
-        put :update, params: { id: admin_posts[0].id, post: { title: 'Updated Title' } }
+        put :update, params: { id: strategy_admin.id, strategy: { description: 'Updated Strategy' } }
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('You are not authorized to update this post')
+        expect(json_response['errors']).to include('You are not authorized to update this strategy')
       end
     end
   end
@@ -206,10 +192,10 @@ RSpec.describe Api::V1::Posts::PostsController do
         sign_in admin
       end
 
-      it 'deletes the post' do
+      it 'deletes the strategy' do
         expect {
-          delete :destroy, params: { id: admin_posts[0].id }
-        }.to change(Post, :count).by(-1)
+          delete :destroy, params: { id: strategy_admin.id }
+        }.to change(Strategy, :count).by(-1)
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(200)
@@ -223,15 +209,15 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'returns an unauthorized response' do
-        delete :destroy, params: { id: admin_posts[0].id }
+        delete :destroy, params: { id: strategy_admin.id }
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('You are not authorized to delete this post')
+        expect(json_response['errors']).to include('You are not authorized to delete this strategy')
       end
     end
 
-    context 'when the post does not exist' do
+    context 'when the strategy does not exist' do
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in admin
@@ -242,8 +228,8 @@ RSpec.describe Api::V1::Posts::PostsController do
         expect(response).to have_http_status(:not_found)
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('Post not found')
+        expect(json_response['errors']).to include('Strategy not found')
       end
     end
   end
-end
+end 

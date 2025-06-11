@@ -3,12 +3,11 @@ require 'swagger_helper' # or 'rails_helper'
 RSpec.describe 'Api::V1::StrategiesController', type: :request do
   include ApiHelpers # Make JWT helper available
 
-  # --- Swagger Docs for GET /api/v1/strategies ---
-  path '/strategies' do # Corrected path (no /api/v1 prefix)
+  path '/api/v1/strategies' do
     get 'Lists strategies for the current user\'s team' do
       tags 'Strategies'
       produces 'application/json'
-      security [Bearer: []] # JWT authentication
+      security [Bearer: []]
 
       parameter name: :page, in: :query, type: :integer, description: 'Page number for pagination', required: false
       parameter name: :page_size, in: :query, type: :integer, description: 'Number of items per page', required: false
@@ -23,62 +22,145 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
                      type: :object,
                      properties: {
                        id: { type: :integer, example: 1 },
-                       description: { type: :string, example: 'My marketing strategy' },
-                       status_display: {
-                         type: :object,
-                         properties: {
-                           name: { type: :string, example: 'Pending' },
-                           color: { type: :string, example: '#FFD700' },
-                           key: { type: :string, example: 'pending' }
-                         },
-                         required: ['name', 'color', 'key']
-                       },
-                       from_schedule: { type: :string, format: 'date-time', example: '2023-01-01T00:00:00.000Z' },
-                       to_schedule: { type: :string, format: 'date-time', example: '2023-01-31T23:59:59.000Z' },
-                       post_ids: { type: :array, items: { type: :integer }, example: [101, 102] }
-                     },
-                     required: ['id', 'description', 'status_display', 'post_ids']
+                       description: { type: :string, example: 'Marketing Strategy Q1' },
+                       from_schedule: { type: :string, format: :date_time, example: '2024-01-01T00:00:00Z' },
+                       to_schedule: { type: :string, format: :date_time, example: '2024-03-31T23:59:59Z' },
+                       status: { type: :string, example: 'active' },
+                       posts_count: { type: :integer, example: 5 },
+                       posts: {
+                         type: :array,
+                         items: {
+                           type: :object,
+                           properties: {
+                             id: { type: :integer, example: 1 }
+                           }
+                         }
+                       }
+                     }
                    }
                  },
                  pagination: { '$ref' => '#/components/schemas/Pagination' }
                },
                required: ['status', 'strategies', 'pagination']
 
-        let(:user_for_docs) {
-          u = create(:user, username: "docuser_#{SecureRandom.hex(3)}", email: "docuser_#{SecureRandom.hex(3)}@example.com")
-          co = create(:company, name: "DocCompany_#{SecureRandom.hex(3)}")
-          t = create(:team, company: co, name: "DocTeam_#{SecureRandom.hex(3)}")
-          create(:team_member, user: u, team: t)
-          # Create a strategy for this user for the example to work
-          p = create(:post, team_member: u.team_member)
-          create(:strategy, posts: [p], description: 'Doc Example Strategy')
-          u
-        }
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user(user_for_docs)}" }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         run_test!
       end
 
       response '401', 'Unauthorized' do
-        schema '$ref' => '#/components/schemas/StatusUnauthorized'
-        let(:Authorization) { "Bearer invalid_token" }
-        # This will run the general unauthenticated test below
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
+               }
+        let(:Authorization) { '' }
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/strategies/{id}' do
+    parameter name: :id, in: :path, type: :integer, required: true
+
+    get 'Retrieves a specific strategy' do
+      tags 'Strategies'
+      produces 'application/json'
+      security [Bearer: []]
+
+      response '200', 'Strategy retrieved successfully' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
+                 strategy: {
+                   type: :object,
+                   properties: {
+                     id: { type: :integer, example: 1 },
+                     description: { type: :string, example: 'Marketing Strategy Q1' },
+                     from_schedule: { type: :string, format: :date_time, example: '2024-01-01T00:00:00Z' },
+                     to_schedule: { type: :string, format: :date_time, example: '2024-03-31T23:59:59Z' },
+                     status: { type: :string, example: 'active' },
+                     posts_count: { type: :integer, example: 5 },
+                     posts: {
+                       type: :array,
+                       items: {
+                         type: :object,
+                         properties: {
+                           id: { type: :integer, example: 1 }
+                         }
+                       }
+                     }
+                   }
+                 }
+               },
+               required: ['status', 'strategy']
+
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:id) { create(:strategy).id }
         run_test!
       end
 
-      response '422', 'User not associated with a team' do
+      response '404', 'Strategy not found' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string }, example: ['User is not associated with a team.'] }
-               },
-               required: ['status', 'errors']
+                 errors: { type: :array, items: { type: :string } }
+               }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:id) { 999 }
+        run_test!
+      end
+    end
+  end
 
-        let(:user_no_team_for_doc) {
-          u = create(:user, username: "docuser_no_team_#{SecureRandom.hex(3)}", email: "docuser_no_team_#{SecureRandom.hex(3)}@example.com")
-          u.team_member&.destroy
-          u
-        }
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user(user_no_team_for_doc)}" }
+  path '/api/v1/strategy/create' do
+    post 'Creates a new marketing strategy' do
+      tags 'Strategies'
+      consumes 'application/json'
+      produces 'application/json'
+      security [Bearer: []]
+
+      parameter name: :strategy, in: :body, schema: {
+        type: :object,
+        properties: {
+          from_schedule: { type: :string, format: :date_time, example: '2024-01-01T00:00:00Z' },
+          to_schedule: { type: :string, format: :date_time, example: '2024-03-31T23:59:59Z' },
+          description: { type: :string, example: 'Marketing Strategy Q1' }
+        },
+        required: ['from_schedule', 'to_schedule', 'description']
+      }
+
+      response '201', 'Strategy created successfully' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
+                 strategy: {
+                   type: :object,
+                   properties: {
+                     id: { type: :integer, example: 1 },
+                     status: { type: :string, example: 'active' }
+                   }
+                 }
+               },
+               required: ['status', 'strategy']
+
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:strategy) do
+          {
+            from_schedule: '2024-01-01T00:00:00Z',
+            to_schedule: '2024-03-31T23:59:59Z',
+            description: 'Marketing Strategy Q1'
+          }
+        end
+        run_test!
+      end
+
+      response '422', 'Validation error' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusError' },
+                 errors: { type: :array, items: { type: :string } }
+               }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:strategy) { { description: 'Only description provided' } }
         run_test!
       end
     end

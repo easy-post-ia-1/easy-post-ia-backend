@@ -11,13 +11,21 @@ Rails.application.routes.draw do
   get 'up' => 'rails/health#show', as: :rails_health_check
   namespace :api do
     namespace :v1 do
-      get '/me/company_social_status', to: 'companies#social_network_status'
-      resources :companies, only: [:show] # Provides GET /api/v1/companies/:id
+      # Company routes
+      resources :companies, only: [:show] do
+        collection do
+          get 'company_social_status/me', to: 'companies#social_network_status'
+        end
+      end
+
+      # Other routes
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
 
       # Routes for StrategiesController
-      resources :strategies, only: [:index] # For GET /api/v1/strategies
-      post '/strategy/create', to: 'strategies#create' # Existing custom route for create
+      resources :strategies, only: [:index, :show] do
+        resources :posts, only: [:index, :create]
+      end
+      post '/strategy/create', to: 'strategies#create'
 
       mount Rswag::Ui::Engine => '/docs' unless Rails.env.production?
       mount Rswag::Api::Engine => '/docs' unless Rails.env.production?

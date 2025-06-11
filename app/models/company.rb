@@ -11,5 +11,6 @@
 #
 class Company < ApplicationRecord
   has_many :teams, dependent: :destroy
+  has_many :strategies, dependent: :destroy
   has_one :credentials_twitter, class_name: 'Credentials::Twitter', dependent: :destroy
 end

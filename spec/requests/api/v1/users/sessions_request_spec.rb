@@ -13,13 +13,6 @@ describe 'Users API' do
       response '200', 'User details retrieved successfully' do
         schema type: :object,
                properties: {
-                 status: {
-                   type: :object,
-                   properties: {
-                     code: { type: :integer, example: 200 },
-                     message: { type: :string, example: 'User details retrieved successfully' }
-                   }
-                 },
                  user: {
                    type: :object,
                    properties: {
@@ -27,40 +20,106 @@ describe 'Users API' do
                      username: { type: :string, example: 'test_user' },
                      email: { type: :string, example: 'test_user@example.com' },
                      role: { type: :string, example: 'EMPLOYEE' }
-                   }
+                   },
+                   required: ['id', 'username', 'email', 'role']
                  }
-               }
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+               },
+               required: ['user']
 
-        xit do |response|
-          expect(response.status).to eq(200)
-          expect(response.content_type).to eq('application/json')
-          json_response = JSON.parse(response.body)
-          expect(json_response['user']).to include('id', 'username', 'email', 'role')
-        end
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        run_test!
       end
 
-      response '401', 'Unauthorized access' do
+      response '401', 'Unauthorized' do
         schema type: :object,
                properties: {
-                 status: {
+                 error: { type: :string, example: 'Unauthorized' }
+               }
+        let(:Authorization) { '' }
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/users/login' do
+    post 'Signs in a user' do
+      tags 'Users'
+      consumes 'application/json'
+      produces 'application/json'
+
+      parameter name: :user, in: :body, schema: {
+        type: :object,
+        properties: {
+          email: { type: :string, format: :email, example: 'test_user@example.com' },
+          password: { type: :string, example: 'password123' }
+        },
+        required: ['email', 'password']
+      }
+
+      response '200', 'User signed in successfully' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
+                 user: {
                    type: :object,
                    properties: {
-                     code: { type: :integer, example: 401 },
-                     message: { type: :string, example: 'Unauthorized' }
-                   }
-                 },
-                 error: { type: :string, example: 'Invalid credentials' }
-               }
+                     id: { type: :integer, example: 1 },
+                     username: { type: :string, example: 'test_user' },
+                     email: { type: :string, example: 'test_user@example.com' },
+                     role: { type: :string, example: 'EMPLOYEE' }
+                   },
+                   required: ['id', 'username', 'email', 'role']
+                 }
+               },
+               required: ['status', 'user']
 
-        let(:Authorization) { '' }
-
-        xit do |response|
-          expect(response.status).to eq(401)
-          expect(response.content_type).to eq('application/json')
-          json_response = JSON.parse(response.body)
-          expect(json_response['error']).to eq('Unauthorized')
+        let(:user) do
+          {
+            email: 'test_user@example.com',
+            password: 'password123'
+          }
         end
+        run_test!
+      end
+
+      response '401', 'Invalid credentials' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
+               }
+        let(:user) do
+          {
+            email: 'test_user@example.com',
+            password: 'wrong_password'
+          }
+        end
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/users/logout' do
+    delete 'Signs out a user' do
+      tags 'Users'
+      produces 'application/json'
+      security [Bearer: []]
+
+      response '200', 'User signed out successfully' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusSuccess' }
+               }
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        run_test!
+      end
+
+      response '401', 'Unauthorized' do
+        schema type: :object,
+               properties: {
+                 status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
+               }
+        let(:Authorization) { '' }
+        run_test!
       end
     end
   end
