@@ -4,7 +4,7 @@
 class PublishSocialNetworkPostJob
   include Sidekiq::Worker
 
-  def perform(args) # Reverted to args
+  def perform(args)
     Rails.logger.info 'Start Proccess Publish Post'
     Rails.logger.info "ARGS publish post: #{args}" # Log the whole hash
 
@@ -23,9 +23,9 @@ class PublishSocialNetworkPostJob
       return
     end
 
-    st.update!(status: :in_progress_config)
+    st.update!(status: :in_progress)
 
-    platform = 'twitter' # Assuming platform might be dynamic in future
+    platform = args['platform'] || 'twitter'
     case platform
     when 'twitter'
       Api::V1::PublishSocialNetwork::Twitter::PublishHelper.post(post_id) # Pass post_id
@@ -36,13 +36,13 @@ class PublishSocialNetworkPostJob
       Rails.logger.error "Unsupported platform: #{platform} - Post id #{post_id}"
     end
 
+    # Update to completed if no errors occurred
+    st.update!(status: :completed)
     Rails.logger.info 'Strategy processed successfully.'
   rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.error "Post not found: #{e.message} - Post id #{args['post_id']}" # Use args['post_id'] for logging consistency
+    Rails.logger.error "Post not found: #{e.message} - Post id #{args['post_id']}"
     # No strategy to update if post itself isn't found
   rescue StandardError => e
-    # Log with post_id from args for context
-    # Ensure st is loaded before trying to update it, or it might be nil if Post.find failed earlier than RecordNotFound
     loaded_strategy = defined?(st) ? st : nil
     loaded_strategy&.update!(status: :failed)
     Rails.logger.error "Error processing strategy: #{e.message} - Post id #{args['post_id']}"

@@ -15,9 +15,11 @@ class PostResource < Madmin::Resource
 
   # Associations
   attribute :team_member
+  attribute :strategy
 
   # Add scopes to easily filter records
-  # scope :published
+  scope :published
+  scope :unpublished
 
   # Add actions to the resource's show page
   # member_action do |record|
@@ -25,10 +27,16 @@ class PostResource < Madmin::Resource
   # end
 
   # Customize the display name of records in the admin area.
-  # def self.display_name(record) = record.name
+  def self.display_name(record)
+    record.title
+  end
 
   # Customize the default sort column and direction.
-  # def self.default_sort_column = "created_at"
-  #
-  # def self.default_sort_direction = "desc"
+  def self.default_sort_column
+    "created_at"
+  end
+
+  def self.default_sort_direction
+    "desc"
+  end
 end

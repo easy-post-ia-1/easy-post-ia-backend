@@ -5,6 +5,7 @@
 # Table name: users
 #
 #  id                     :bigint           not null, primary key
+#  did_tutorial           :boolean          default(FALSE), not null
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  remember_created_at    :datetime
@@ -30,7 +31,7 @@ FactoryBot.define do
   factory :user do
     username { Faker::Internet.username(specifier: 8) }
     email { Faker::Internet.email }
-    role { 'EMPLOYER' }
     password { 'sdhjsdhjsd' }
+    company
   end
 end

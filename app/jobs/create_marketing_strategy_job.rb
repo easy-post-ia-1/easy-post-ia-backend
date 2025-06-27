@@ -10,8 +10,15 @@ class CreateMarketingStrategyJob < ApplicationJob
     Rails.logger.info 'Processing strategy...'
     Rails.logger.info "From: #{config_post[:from_schedule]}, To: #{config_post[:to_schedule]}, Description: #{config_post[:description]}"
 
-    st = Strategy.find_or_create_by(id: config_post[:strategy_id].presence)
-    st.update!(status: :in_progress_config)
+    # Find the strategy by the provided strategy_id (created by the controller)
+    st = Strategy.find_by(id: config_post[:strategy_id])
+    
+    unless st
+      Rails.logger.error("Strategy not found with ID: #{config_post[:strategy_id]}")
+      return { status: :error, message: 'Strategy not found', posts: [], strategy_id: nil }
+    end
+
+    st.update!(status: :in_progress)
 
     begin
       result = Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper.build_posts_ia(
@@ -39,7 +46,7 @@ class CreateMarketingStrategyJob < ApplicationJob
           res_posts.push(schedule_post)
         end
 
-        st.update!(status: :in_progress_scheduling)
+        st.update!(status: :completed)
         { status: :success, message: 'Posts scheduled', posts: res_posts, strategy_id: st&.id }
       else
         st.update!(status: :failed)

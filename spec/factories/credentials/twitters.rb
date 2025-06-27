@@ -27,4 +27,9 @@ FactoryBot.define do
     access_token_secret { "MyText" }
     company { nil }
   end
+
+  factory :twitter_credential, class: 'Credentials::Twitter' do
+    association :company
+    # Add required attributes here, e.g. token { 'fake-token' }
+  end
 end

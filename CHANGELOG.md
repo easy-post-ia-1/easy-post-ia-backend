@@ -2,6 +2,17 @@
 
 This document lists breaking changes for each major release.
 
+## v0.0.11 (26/06/2025)
+
+Feature KAN-48, KAN-74, KAN-71: Implement user roles and permissions with Rolify
+
+- Role Model Creation: Added a new `Role` model to manage user roles and their associations.
+- User Model Updates: Updated the `User` model to include role management, allowing users to have multiple roles.
+- Ability Configuration: Implemented the `Ability` class to define permissions based on user roles, enabling fine-grained access control for resources like `Post`, `Strategy`, and `Team`.
+- Database Migrations: Created migrations to add the `roles` table and a join table for user-role associations.
+- Controller Enhancements: Updated relevant controllers to enforce role-based access control, ensuring that only authorized users can perform certain actions.
+- Testing: Added tests for the new role and ability functionalities, ensuring that permissions are correctly enforced.
+
 ## v0.0.10 (11/06/2025)
 
 - chore, KAN-62, KAN-65, KAN-63, KAN-67, KAN-68, KAN-70: add migrations/controllers/seeds, swagger and strategy/calendar features.

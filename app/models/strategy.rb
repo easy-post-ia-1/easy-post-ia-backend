@@ -27,8 +27,8 @@
 #  fk_rails_...  (team_member_id => team_members.id)
 #
 class Strategy < ApplicationRecord
-  belongs_to :company
   belongs_to :team_member
+  belongs_to :company
   has_many :posts, dependent: :destroy
 
   validates :description, presence: true

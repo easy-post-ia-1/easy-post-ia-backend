@@ -32,9 +32,37 @@ module Api
 
       # POST /api/v1/strategies
       def create
-        strategy_data = strategy_params.merge(creator_id: current_user.id)
+        # Get the current user's team member and company
+        team_member = current_user.team_member
+        company = current_user.company
+
+        unless team_member && company
+          render json: error_response(['User is not associated with a team or company']), status: :unprocessable_entity
+          return
+        end
+
+        # Create the strategy record first
+        strategy = Strategy.create!(
+          description: strategy_params[:description],
+          from_schedule: strategy_params[:from_schedule],
+          to_schedule: strategy_params[:to_schedule],
+          team_member: team_member,
+          company: company,
+          status: :pending
+        )
+
+        # Pass the strategy data to the job
+        strategy_data = strategy_params.merge(
+          creator_id: current_user.id,
+          strategy_id: strategy.id
+        )
+        
         res = CreateMarketingStrategyJob.perform_now(strategy_data)
         render json: creation_success_response(res), status: :created
+      rescue ActiveRecord::RecordInvalid => e
+        render json: error_response(e.record.errors.full_messages), status: :unprocessable_entity
+      rescue StandardError => e
+        render json: error_response([e.message]), status: :unprocessable_entity
       end
 
       private

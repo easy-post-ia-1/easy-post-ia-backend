@@ -5,12 +5,12 @@ require 'rails_helper'
 RSpec.describe Api::V1::Posts::PostsController do
   let(:team) { create(:team) }
   let(:team_employee) { create(:team) }
-  let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com') }
-  let(:employee) { create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com') }
+  let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: team.company) }
+  let(:employee) { create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: team_employee.company) }
   let(:admin_team_member) { create(:team_member, user: admin, team: team) }
   let(:employee_team_member) { create(:team_member, user: employee, team: team_employee) }
-  let!(:strategy_admin) { create(:strategy) }
-  let!(:strategy_employee) { create(:strategy) }
+  let!(:strategy_admin) { create(:strategy, company: team.company, team_member: admin_team_member) }
+  let!(:strategy_employee) { create(:strategy, company: team_employee.company, team_member: employee_team_member) }
   let!(:admin_posts) { create_list(:post, 3, team_member: admin_team_member, strategy: strategy_admin) }
   let!(:employee_posts) { create_list(:post, 2, team_member: employee_team_member, strategy: strategy_employee) }
   let(:invalid_post_params) do
@@ -28,7 +28,8 @@ RSpec.describe Api::V1::Posts::PostsController do
       description: 'This is a sample post description',
       tags: 'example,post',
       programming_date_to_post: '2024-11-26T00:00:00Z',
-      team_member_id: admin_team_member.id
+      team_member_id: admin_team_member.id,
+      strategy_id: strategy_admin.id
     }
   end
 
@@ -45,7 +46,7 @@ RSpec.describe Api::V1::Posts::PostsController do
         json_response = JSON.parse(response.body)
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['posts']).to be_an(Array)
-        expect(json_response['pagination']).to include('page', 'per_page', 'pages', 'count')
+        expect(json_response['pagination'].keys).to match_array(%w[page pages count])
       end
 
       it 'filters posts by date range' do
