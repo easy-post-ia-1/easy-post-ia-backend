@@ -25,7 +25,7 @@ Rails.application.routes.draw do
       resources :strategies, only: [:index, :show] do
         resources :posts, only: [:index, :create]
       end
-      post '/strategy/create', to: 'strategies#create'
+      post '/strategies/create', to: 'strategies#create'
 
       mount Rswag::Ui::Engine => '/docs' unless Rails.env.production?
       mount Rswag::Api::Engine => '/docs' unless Rails.env.production?
@@ -55,5 +55,6 @@ Rails.application.routes.draw do
 
   devise_scope :user do
     get 'api/v1/users/me', to: 'api/v1/users/sessions#me'
+    patch 'api/v1/users/me', to: 'api/v1/users/sessions#update'
   end
 end

@@ -3,16 +3,30 @@
 require 'rails_helper'
 
 RSpec.describe CreateMarketingStrategyJob, type: :job do
-  let(:strategy) { create(:strategy, status: :pending) }
+  let(:company) { create(:company) }
+  let(:team) { create(:team, company: company) }
+  let(:user) { create(:user, company: company) }
+  let(:team_member) { create(:team_member, user: user, team: team) }
+  let(:strategy) do
+    create(:strategy,
+      status: :pending,
+      company: company,
+      team_member: team_member,
+      description: 'Generate marketing content',
+      from_schedule: '2025-02-25',
+      to_schedule: '2025-02-26')
+  end
   let(:config_post) do
     {
       strategy_id: strategy.id,
-      creator_id: 1,
+      creator_id: user.id,
       description: 'Generate marketing content',
       from_schedule: '2025-02-25',
       to_schedule: '2025-02-26'
     }
   end
+
+  let(:mock_cron_job) { double('Sidekiq::Cron::Job', valid?: true, save: true) }
 
   before do
     allow(Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper)
@@ -20,7 +34,8 @@ RSpec.describe CreateMarketingStrategyJob, type: :job do
       .and_return({ status: :success, posts: [1001, 1002] })
 
     allow(Post).to receive(:programming_date_to_cron).and_return('* * * * *')
-    allow(Sidekiq::Cron::Job).to receive(:create).and_return(true)
+    allow(Sidekiq::Cron::Job).to receive(:new).and_return(mock_cron_job)
+    allow(mock_cron_job).to receive(:save).and_return(true)
   end
 
   describe '#perform' do
@@ -30,16 +45,16 @@ RSpec.describe CreateMarketingStrategyJob, type: :job do
         "From: #{config_post[:from_schedule]}, To: #{config_post[:to_schedule]}, Description: #{config_post[:description]}"
       )
 
-      described_class.new.perform(config_post: config_post)
+      described_class.new.perform(config_post)
     end
 
     it 'updates strategy status correctly' do
-      expect { described_class.new.perform(config_post: config_post) }
-        .to change { strategy.reload.status }.from('pending').to('scheduled')
+      expect { described_class.new.perform(config_post) }
+        .to change { strategy.reload.status }.from('pending').to('completed')
     end
 
     it 'calls the AI API to build posts' do
-      described_class.new.perform(config_post: config_post)
+      described_class.new.perform(config_post)
 
       expect(Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper)
         .to have_received(:build_posts_ia)
@@ -48,8 +63,9 @@ RSpec.describe CreateMarketingStrategyJob, type: :job do
     end
 
     it 'creates a Sidekiq cron job for each post' do
-      described_class.new.perform(config_post: config_post)
-      expect(Sidekiq::Cron::Job).to have_received(:create).twice
+      described_class.new.perform(config_post)
+      expect(Sidekiq::Cron::Job).to have_received(:new).twice
+      expect(mock_cron_job).to have_received(:save).twice
     end
 
     context 'when an error occurs' do
@@ -62,7 +78,7 @@ RSpec.describe CreateMarketingStrategyJob, type: :job do
         expect(Rails.logger).to receive(:error).with(a_string_matching(/Error while building posts: API Failure/))
         expect(Rails.logger).to receive(:error) # Para capturar la traza del error
 
-        expect { described_class.new.perform(config_post: config_post) }
+        expect { described_class.new.perform(config_post) }
           .to change { strategy.reload.status }.to('failed')
       end
 
@@ -71,9 +87,9 @@ RSpec.describe CreateMarketingStrategyJob, type: :job do
           .to receive(:build_posts_ia)
           .and_return({ status: :success, posts: [] }) # Simulamos que la API no genera posts
 
-        result = described_class.new.perform(config_post: config_post)
+        result = described_class.new.perform(config_post)
 
-        expect(result).to eq({ status: :error, message: 'No posts created', posts: [] })
+        expect(result).to eq({ status: :error, message: 'No posts created', posts: [], strategy_id: strategy.id })
         expect(strategy.reload.status).to eq('failed')
       end
     end

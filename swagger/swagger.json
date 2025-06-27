@@ -5,7 +5,7 @@
     "version": "v1"
   },
   "paths": {
-    "/me/company_social_status": {
+    "/api/v1/me/company_social_status": {
       "get": {
         "summary": "Retrieves social network credential status for the current user's company",
         "tags": [
@@ -62,7 +62,33 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatusUnauthorized"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusUnauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not associated with a company",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -70,21 +96,25 @@
         }
       }
     },
-    "/companies/{id}": {
+    "/api/v1/companies/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
       "get": {
         "summary": "Retrieves a specific company by ID",
         "tags": [
           "Companies"
         ],
-        "parameters": [
+        "security": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of the company",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
+            "Bearer": []
           }
         ],
         "responses": {
@@ -138,16 +168,9 @@
                       "type": "array",
                       "items": {
                         "type": "string"
-                      },
-                      "example": [
-                        "Company not found."
-                      ]
+                      }
                     }
-                  },
-                  "required": [
-                    "status",
-                    "errors"
-                  ]
+                  }
                 }
               }
             }
@@ -166,6 +189,46 @@
             "Bearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Number of items per page",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from_date",
+            "in": "query",
+            "format": "date_time",
+            "description": "Filter posts from this date",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "format": "date_time",
+            "description": "Filter posts until this date",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Posts retrieved successfully",
@@ -175,17 +238,7 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 200
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Posts retrieved successfully"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "posts": {
                       "type": "array",
@@ -219,8 +272,16 @@
                           }
                         }
                       }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
                     }
-                  }
+                  },
+                  "required": [
+                    "status",
+                    "posts",
+                    "pagination"
+                  ]
                 }
               }
             }
@@ -233,17 +294,7 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 401
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Unauthorized"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusUnauthorized"
                     }
                   }
                 }
@@ -253,7 +304,7 @@
         }
       },
       "post": {
-        "summary": "Creates a post",
+        "summary": "Creates a new post",
         "tags": [
           "Posts"
         ],
@@ -272,17 +323,7 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 201
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Post created successfully"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
                       "type": "object",
@@ -314,36 +355,29 @@
                         }
                       }
                     }
-                  }
+                  },
+                  "required": [
+                    "status",
+                    "post"
+                  ]
                 }
               }
             }
           },
           "422": {
-            "description": "Invalid request",
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 422
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Invalid request"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusError"
                     },
                     "errors": {
                       "type": "array",
                       "items": {
-                        "type": "string",
-                        "example": "Title can't be blank"
+                        "type": "string"
                       }
                     }
                   }
@@ -383,6 +417,7 @@
                 "required": [
                   "title",
                   "description",
+                  "tags",
                   "programming_date_to_post",
                   "team_member_id"
                 ]
@@ -398,14 +433,13 @@
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "Post ID",
           "schema": {
             "type": "integer"
           }
         }
       ],
       "get": {
-        "summary": "Retrieves a post",
+        "summary": "Retrieves a specific post",
         "tags": [
           "Posts"
         ],
@@ -423,17 +457,7 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 200
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Post retrieved successfully"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
                       "type": "object",
@@ -465,6 +489,31 @@
                         }
                       }
                     }
+                  },
+                  "required": [
+                    "status",
+                    "post"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
@@ -482,6 +531,7 @@
             "Bearer": []
           }
         ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Post updated successfully",
@@ -491,17 +541,7 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 200
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Post updated successfully"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
                       "type": "object",
@@ -513,9 +553,83 @@
                         "title": {
                           "type": "string",
                           "example": "Updated Post"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "This is an updated post description"
+                        },
+                        "tags": {
+                          "type": "string",
+                          "example": "updated,post"
+                        },
+                        "programming_date_to_post": {
+                          "type": "string",
+                          "format": "date_time",
+                          "example": "2024-11-26T00:00:00Z"
+                        },
+                        "team_member_id": {
+                          "type": "integer",
+                          "example": 1
                         }
                       }
                     }
+                  },
+                  "required": [
+                    "status",
+                    "post"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Updated Post"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "This is an updated post description"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "updated,post"
+                  },
+                  "programming_date_to_post": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2024-11-26T00:00:00Z"
+                  },
+                  "team_member_id": {
+                    "type": "integer",
+                    "example": 1
                   }
                 }
               }
@@ -542,16 +656,27 @@
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 200
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Post deleted successfully"
-                        }
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     }
                   }
@@ -651,9 +776,7 @@
             }
           }
         }
-      }
-    },
-    "/strategies": {
+      },
       "get": {
         "summary": "Lists strategies for the current user's team",
         "tags": [
@@ -706,57 +829,39 @@
                           },
                           "description": {
                             "type": "string",
-                            "example": "My marketing strategy"
-                          },
-                          "status_display": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "example": "Pending"
-                              },
-                              "color": {
-                                "type": "string",
-                                "example": "#FFD700"
-                              },
-                              "key": {
-                                "type": "string",
-                                "example": "pending"
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "color",
-                              "key"
-                            ]
+                            "example": "Marketing Strategy Q1"
                           },
                           "from_schedule": {
                             "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-01T00:00:00.000Z"
+                            "format": "date_time",
+                            "example": "2024-01-01T00:00:00Z"
                           },
                           "to_schedule": {
                             "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-31T23:59:59.000Z"
+                            "format": "date_time",
+                            "example": "2024-03-31T23:59:59Z"
                           },
-                          "post_ids": {
+                          "status": {
+                            "type": "string",
+                            "example": "active"
+                          },
+                          "posts_count": {
+                            "type": "integer",
+                            "example": 5
+                          },
+                          "posts": {
                             "type": "array",
                             "items": {
-                              "type": "integer"
-                            },
-                            "example": [
-                              101,
-                              102
-                            ]
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer",
+                                  "example": 1
+                                }
+                              }
+                            }
                           }
-                        },
-                        "required": [
-                          "id",
-                          "description",
-                          "status_display",
-                          "post_ids"
-                        ]
+                        }
                       }
                     },
                     "pagination": {
@@ -777,13 +882,105 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatusUnauthorized"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusUnauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/strategies/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Retrieves a specific strategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Strategy retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "strategy": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Marketing Strategy Q1"
+                        },
+                        "from_schedule": {
+                          "type": "string",
+                          "format": "date_time",
+                          "example": "2024-01-01T00:00:00Z"
+                        },
+                        "to_schedule": {
+                          "type": "string",
+                          "format": "date_time",
+                          "example": "2024-03-31T23:59:59Z"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "active"
+                        },
+                        "posts_count": {
+                          "type": "integer",
+                          "example": 5
+                        },
+                        "posts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "example": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "strategy"
+                  ]
                 }
               }
             }
           },
-          "422": {
-            "description": "User not associated with a team",
+          "404": {
+            "description": "Strategy not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -796,17 +993,109 @@
                       "type": "array",
                       "items": {
                         "type": "string"
-                      },
-                      "example": [
-                        "User is not associated with a team."
-                      ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/strategy/create": {
+      "post": {
+        "summary": "Creates a new marketing strategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Strategy created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "strategy": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "active"
+                        }
+                      }
                     }
                   },
                   "required": [
                     "status",
-                    "errors"
+                    "strategy"
                   ]
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusError"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2024-01-01T00:00:00Z"
+                  },
+                  "to_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2024-03-31T23:59:59Z"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Marketing Strategy Q1"
+                  }
+                },
+                "required": [
+                  "from_schedule",
+                  "to_schedule",
+                  "description"
+                ]
               }
             }
           }
@@ -822,24 +1111,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": "User successfully created",
+            "description": "User created successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 201
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "User successfully created"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "user": {
                       "type": "object",
@@ -860,43 +1139,38 @@
                           "type": "string",
                           "example": "EMPLOYEE"
                         }
-                      }
+                      },
+                      "required": [
+                        "id",
+                        "username",
+                        "email",
+                        "role"
+                      ]
                     }
-                  }
+                  },
+                  "required": [
+                    "status",
+                    "user"
+                  ]
                 }
               }
             }
           },
           "422": {
-            "description": "Invalid request or validation errors",
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 422
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Validation failed"
-                        }
-                      }
+                      "$ref": "#/components/schemas/StatusError"
                     },
                     "errors": {
                       "type": "array",
                       "items": {
                         "type": "string"
-                      },
-                      "example": [
-                        "Username can't be blank",
-                        "Email is invalid",
-                        "Role is not included in the list"
-                      ]
+                      }
                     }
                   }
                 }
@@ -997,18 +1271,77 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
+                    "user": {
                       "type": "object",
                       "properties": {
-                        "code": {
+                        "id": {
                           "type": "integer",
-                          "example": 200
+                          "example": 1
                         },
-                        "message": {
+                        "username": {
                           "type": "string",
-                          "example": "User details retrieved successfully"
+                          "example": "test_user"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "test_user@example.com"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "EMPLOYEE"
                         }
-                      }
+                      },
+                      "required": [
+                        "id",
+                        "username",
+                        "email",
+                        "role"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/login": {
+      "post": {
+        "summary": "Signs in a user",
+        "tags": [
+          "Users"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User signed in successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "user": {
                       "type": "object",
@@ -1029,7 +1362,86 @@
                           "type": "string",
                           "example": "EMPLOYEE"
                         }
-                      }
+                      },
+                      "required": [
+                        "id",
+                        "username",
+                        "email",
+                        "role"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusUnauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "test_user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/logout": {
+      "delete": {
+        "summary": "Signs out a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User signed out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
                     }
                   }
                 }
@@ -1037,28 +1449,14 @@
             }
           },
           "401": {
-            "description": "Unauthorized access",
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "integer",
-                          "example": 401
-                        },
-                        "message": {
-                          "type": "string",
-                          "example": "Unauthorized"
-                        }
-                      }
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Invalid credentials"
+                      "$ref": "#/components/schemas/StatusUnauthorized"
                     }
                   }
                 }

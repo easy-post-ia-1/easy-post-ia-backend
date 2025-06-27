@@ -5,6 +5,7 @@
 # Table name: users
 #
 #  id                     :bigint           not null, primary key
+#  did_tutorial           :boolean          default(FALSE), not null
 #  email                  :string           default(""), not null
 #  encrypted_password     :string           default(""), not null
 #  remember_created_at    :datetime
@@ -33,17 +34,20 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
+  rolify
+
   belongs_to :company
   has_one :team_member
   has_one :team, through: :team_member
   has_many :strategies, through: :team_member, source: :strategies
+  has_many :posts, through: :team_member, source: :posts
 
   validates :username, presence: true, uniqueness: true
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }, uniqueness: true
-  validates :role, presence: true,
-                   inclusion: { in: %w[EMPLOYER EMPLOYEE ADMIN], message: :inclusion }
 
   def user_json_response
-    serializable_hash(except: %i[id created_at updated_at])
+    response = serializable_hash(except: %i[id created_at updated_at role])
+    response['role'] = roles.first&.name || 'user'
+    response
   end
 end

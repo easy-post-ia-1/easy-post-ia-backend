@@ -3,7 +3,7 @@
 module Api
   module V1
     class CompaniesController < ApplicationController
-      before_action :authenticate_user!, only: [:social_network_status] # Protect only this endpoint
+      before_action :authenticate_user!, only: [:social_network_status, :show] # Protect these endpoints
 
       # GET /api/v1/me/company_social_status
       def social_network_status

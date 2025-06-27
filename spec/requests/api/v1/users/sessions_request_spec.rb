@@ -47,7 +47,7 @@ describe 'Users API' do
       consumes 'application/json'
       produces 'application/json'
 
-      parameter name: :user, in: :body, schema: {
+      parameter name: :login_params, in: :body, schema: {
         type: :object,
         properties: {
           email: { type: :string, format: :email, example: 'test_user@example.com' },
@@ -73,7 +73,7 @@ describe 'Users API' do
                },
                required: ['status', 'user']
 
-        let(:user) do
+        let(:login_params) do
           {
             email: 'test_user@example.com',
             password: 'password123'
@@ -87,7 +87,7 @@ describe 'Users API' do
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
                }
-        let(:user) do
+        let(:login_params) do
           {
             email: 'test_user@example.com',
             password: 'wrong_password'

@@ -7,7 +7,8 @@ module Api
       # Devise ssion controller
       class SessionsController < Devise::SessionsController
         include RackSessionFix
-        # before_action :configure_sign_in_params, only: [:create]
+        before_action :configure_sign_in_params, only: [:create]
+        respond_to :json
 
         # GET /resource/sign_in
         # def new
@@ -15,23 +16,22 @@ module Api
         # end
 
         # POST /resource/sign_in
-        # def create
-        #   super
-        # end
+        def create
+          self.resource = warden.authenticate(auth_options)
+          if resource
+            set_flash_message!(:notice, :signed_in) if respond_to?(:set_flash_message!)
+            sign_in(resource_name, resource)
+            yield resource if block_given?
+            respond_with(resource)
+          else
+            respond_with(nil)
+          end
+        end
 
         # DELETE /resource/sign_out
         # def destroy
         #   super
         # end
-
-        # protected
-
-        # If you have extra params to permit, append them to the sanitizer.
-        # def configure_sign_in_params
-        #   devise_parameter_sanitizer.permit(:sign_in, keys: [:attribute])
-        # end
-        #
-        respond_to :json
 
         # GET /me
         def me
@@ -43,7 +43,26 @@ module Api
           end
         end
 
+        # PATCH/PUT /me
+        def update
+          Rails.logger.info "Update request received for user: #{current_user&.id}"
+          Rails.logger.info "Update params: #{params.inspect}"
+          
+          if current_user&.update(user_params)
+            Rails.logger.info "User updated successfully. New did_tutorial value: #{current_user.did_tutorial}"
+            render json: { user: current_user.user_json_response }, status: :ok
+          else
+            Rails.logger.error "Failed to update user: #{current_user&.errors&.full_messages}"
+            render json: { errors: current_user&.errors&.full_messages }, status: :unprocessable_entity
+          end
+        end
+
         private
+
+        # If you have extra params to permit, append them to the sanitizer.
+        def configure_sign_in_params
+          devise_parameter_sanitizer.permit(:sign_in, keys: [:email, :password])
+        end
 
         def respond_with(current_user, _opts = {})
           render json: {
@@ -71,6 +90,10 @@ module Api
 
           jwt_payload = JWT.decode(token, Rails.application.credentials.devise_jwt_secret_key!).first
           User.find_by(id: jwt_payload['sub'])
+        end
+
+        def user_params
+          params.require(:user).permit(:did_tutorial)
         end
       end
     end

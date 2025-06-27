@@ -11,12 +11,11 @@ describe 'Users API' do
       consumes 'application/json'
       produces 'application/json'
 
-      parameter name: :user, in: :body, schema: {
+      parameter name: :signup_params, in: :body, schema: {
         type: :object,
         properties: {
           username: { type: :string, description: 'The username of the user', example: 'test_user' },
-          email: { type: :string, format: :email, description: 'The email address of the user',
-                   example: 'test_user@example.com' },
+          email: { type: :string, format: :email, description: 'The email address of the user', example: 'test_user@example.com' },
           password: { type: :string, description: 'The password of the user', example: 'password1234' },
           role: {
             type: :string,
@@ -45,7 +44,7 @@ describe 'Users API' do
                },
                required: ['status', 'user']
 
-        let(:user) do
+        let(:signup_params) do
           {
             username: 'test_user',
             email: 'test_user@example.com',
@@ -62,7 +61,7 @@ describe 'Users API' do
                  status: { '$ref' => '#/components/schemas/StatusError' },
                  errors: { type: :array, items: { type: :string } }
                }
-        let(:user) do
+        let(:signup_params) do
           {
             username: '',
             email: 'invalid_email',
@@ -86,7 +85,7 @@ describe 'Users API' do
                  error: { type: :string, example: 'Invalid credentials' }
                }
 
-        let(:Authorization) { "Basic #{Base64.strict_encode64('bogus:bogus')}" }
+        let(:Authorization) { "Basic #{Base64.strict_encode64('bogus:bogus') }" }
 
         xit do |response|
           expect(response.status).to eq(401)

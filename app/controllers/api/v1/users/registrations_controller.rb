@@ -7,8 +7,9 @@ module Api
     module Users
       # Controller in charge if the registration inheriting from Devise
       class RegistrationsController < Devise::RegistrationsController
-        # before_action :configure_sign_up_params, only: [:create]
-        # before_action :configure_account_update_params, only: [:update]
+        include RackSessionFix
+        before_action :configure_sign_up_params, only: [:create]
+        respond_to :json
 
         # GET /resource/sign_up
         # def new
@@ -16,9 +17,9 @@ module Api
         # end
 
         # POST /resource
-        # def create
-        #   super
-        # end
+        def create
+          super
+        end
 
         # GET /resource/edit
         # def edit
@@ -47,9 +48,9 @@ module Api
         # protected
 
         # If you have extra params to permit, append them to the sanitizer.
-        # def configure_sign_up_params
-        #   devise_parameter_sanitizer.permit(:sign_up, keys: [:attribute])
-        # end
+        def configure_sign_up_params
+          devise_parameter_sanitizer.permit(:sign_up, keys: [:username, :role, :company_id])
+        end
 
         # If you have extra params to permit, append them to the sanitizer.
         # def configure_account_update_params
@@ -65,58 +66,41 @@ module Api
         # def after_inactive_sign_up_path_for(resource)
         #   super(resource)
         # end
-        include RackSessionFix
-        before_action :initialize_user, only: [:create]
-        respond_to :json
-
-        def create
-          if @user.valid? && @user.save
-            render json: user_creation_success_response, status: :created
-          else
-            render json: user_creation_error_response, status: :unprocessable_entity
-          end
-        end
-
-        # def respond_with(current_user, _opts = {})
-        #   if resource.persisted?
-        #     render json: {
-        #       status: { code: 200, message: 'Signed up successfully.' },
-        #       data: @user.user_json_response
-        #     }, status: :ok
-        #   else
-        #     render json: {
-        #       status: {
-        #         message: "User couldn't be created successfully. #{current_user.errors.full_messages.to_sentence}"
-        #       }
-        #     }, status: :unprocessable_entity
-        #   end
-        # end
 
         private
 
-        def initialize_user
-          @user = User.new(user_params)
+        def respond_with(resource, _opts = {})
+          if resource.persisted?
+            # Assign role if provided in params
+            assign_role_to_user(resource) if params[:role].present?
+            
+            render json: {
+              status: { code: 201, message: I18n.t('devise.registrations.signed_up') },
+              user: resource.user_json_response
+            }, status: :created
+          else
+            render json: {
+              status: { code: 422,
+                        message: I18n.t(
+                          'devise.errors.messages.not_saved',
+                          count: resource.errors.count,
+                          resource: resource.errors.full_messages.join(', ')
+                        ) },
+              errors: resource.errors.full_messages
+            }, status: :unprocessable_entity
+          end
         end
 
-        def user_creation_success_response
-          { status: { code: 201, message: I18n.t('devise.registrations.signed_up') },
-            user: @user.user_json_response }
-        end
-
-        def user_creation_error_response
-          {
-            status: { code: 422,
-                      message: I18n.t(
-                        'devise.errors.messages.not_saved',
-                        count: @user.errors.count,
-                        resource: @user.errors.full_messages.join(', ')
-                      ) },
-            errors: @user.errors.full_messages
-          }
-        end
-
-        def user_params
-          params.permit(:username, :email, :password, :role)
+        def assign_role_to_user(user)
+          role_name = params[:role].downcase.to_sym
+          begin
+            # Ensure the role exists, create it if it doesn't
+            Role.find_or_create_by(name: role_name.to_s)
+            user.add_role(role_name)
+          rescue => e
+            Rails.logger.error "Failed to assign role #{role_name} to user #{user.id}: #{e.message}"
+            # Continue without role assignment if there's an error
+          end
         end
       end
     end

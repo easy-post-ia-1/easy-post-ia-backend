@@ -20,8 +20,8 @@
 #  fk_rails_...  (team_id => teams.id)
 #
 class TeamMember < ApplicationRecord
-  belongs_to :team
   belongs_to :user
+  belongs_to :team
   has_many :posts
   has_many :strategies
 

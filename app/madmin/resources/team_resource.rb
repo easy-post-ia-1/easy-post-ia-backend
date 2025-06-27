@@ -11,6 +11,9 @@ class TeamResource < Madmin::Resource
   # Associations
   attribute :company
   attribute :team_members
+  attribute :users
+  attribute :strategies
+  attribute :posts
 
   # Add scopes to easily filter records
   # scope :published
@@ -21,10 +24,16 @@ class TeamResource < Madmin::Resource
   # end
 
   # Customize the display name of records in the admin area.
-  # def self.display_name(record) = record.name
+  def self.display_name(record)
+    record.name
+  end
 
   # Customize the default sort column and direction.
-  # def self.default_sort_column = "created_at"
-  #
-  # def self.default_sort_direction = "desc"
+  def self.default_sort_column
+    "created_at"
+  end
+
+  def self.default_sort_direction
+    "desc"
+  end
 end

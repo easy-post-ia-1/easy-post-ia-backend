@@ -15,6 +15,11 @@ module Api
           page, page_size = pagination_params.values_at(:page, :page_size)
           from_date = params[:from_date]
           to_date = params[:to_date]
+          title = params[:title]
+          description = params[:description]
+          tags = params[:tags]
+          status = params[:status]
+          is_published = params[:is_published]
 
           posts_scope = Post.where(team_member_id: current_user.team_member.id)
 
@@ -24,6 +29,25 @@ module Api
 
           if to_date.present?
             posts_scope = posts_scope.where('programming_date_to_post <= ?', to_date)
+          end
+
+          if title.present?
+            posts_scope = posts_scope.where('title ILIKE ?', "%#{title}%")
+          end
+
+          if description.present?
+            posts_scope = posts_scope.where('description ILIKE ?', "%#{description}%")
+          end
+
+          if tags.present?
+            # Handle tags as an array or string
+            tag_array = tags.is_a?(Array) ? tags : tags.split(',')
+            tag_conditions = tag_array.map { |tag| "tags ILIKE ?" }.join(' OR ')
+            posts_scope = posts_scope.where(tag_conditions, *tag_array.map { |tag| "%#{tag}%" })
+          end
+
+          if is_published.present?
+            posts_scope = posts_scope.where(is_published: is_published)
           end
 
           @pagy, @records = pagy(posts_scope, items: page_size, page:)
@@ -58,6 +82,8 @@ module Api
         def update
           if current_user.team == @post.team && @post.update(post_params)
             render json: success_response(post: @post), status: :ok
+          elsif current_user.team != @post.team
+            render json: error_response('You are not authorized to update this post'), status: :unauthorized
           else
             render json: error_response(@post.errors.full_messages), status: :unprocessable_entity
           end
@@ -77,7 +103,7 @@ module Api
 
         # Strong Parameters
         def post_params
-          params.require(:post).permit(:title, :description, :tags, :programming_date_to_post, :team_member_id)
+          params.require(:post).permit(:title, :description, :tags, :programming_date_to_post, :team_member_id, :strategy_id)
         end
 
         def pagination_params

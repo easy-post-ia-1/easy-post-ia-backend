@@ -28,7 +28,7 @@
 #
 class Post < ApplicationRecord
   belongs_to :team_member
-  belongs_to :strategy, optional: true
+  belongs_to :strategy
 
   has_one :team, through: :team_member
 

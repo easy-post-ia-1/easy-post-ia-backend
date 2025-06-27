@@ -29,6 +29,7 @@ Rails.logger.debug 'Users'
 # Create User accounts
 users = []
 roles = %w[ADMIN EMPLOYER EMPLOYEE]
+team_members = []
 3.times do |i|
   user_attrs = {
     username: Faker::Internet.unique.username,
@@ -39,8 +40,18 @@ roles = %w[ADMIN EMPLOYER EMPLOYEE]
     company: companies.sample
   }
   Rails.logger.debug "DEBUG: user_attrs before creation: #{user_attrs.inspect}"
-  users << User.create!(**user_attrs)
-  Rails.logger.debug "Created user: #{users.last.username} (ID: #{users.last.id}) for company: #{users.last.company.name}"
+  user = User.create!(**user_attrs)
+  # Assign role with Rolify
+  case user.role
+  when 'ADMIN'
+    user.add_role :admin
+  when 'EMPLOYER'
+    user.add_role :employer
+  when 'EMPLOYEE'
+    user.add_role :employee
+  end
+  users << user
+  Rails.logger.debug "Created user: #{user.username} (ID: #{user.id}) for company: #{user.company.name} with role: #{user.roles.pluck(:name).join(', ')}"
 end
 
 # Create Twitter credentials for each company
@@ -69,12 +80,12 @@ end
 
 Rails.logger.debug '=' * 20
 Rails.logger.debug 'Team Members'
-# Create Team Members
-team_members = []
-teams.each_with_index do |team, index|
-  team_member = team.team_members.create!(user_id: users[index % users.length].id, role_id: 1) # Assuming role_id 1 is a valid default
+# Create Teams and Team Members for each user
+users.each do |user|
+  team = Team.create!(name: Faker::Team.name, company: user.company)
+  team_member = TeamMember.create!(user: user, team: team, role_id: 1)
   team_members << team_member
-  Rails.logger.debug "Created team member: #{team_member.user.username} for team: #{team.name}"
+  Rails.logger.debug "Created team: #{team.name} and team member: #{user.username}"
 end
 
 Rails.logger.debug '=' * 20
