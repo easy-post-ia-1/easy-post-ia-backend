@@ -1,0 +1,40 @@
+<%= form_with model: [:madmin, record], url: (record.persisted? ? resource.show_path(record) : resource.index_path), local: true do |form| %>
+  <% if form.object.errors.any? %>
+    <div class="alert alert-danger">
+      <div class="">There was
+        <%= pluralize form.object.errors.full_messages.count, "error" %>
+        with your submission:</div>
+
+      <ul>
+        <% form.object.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% resource.attributes.values.select{ _1.field.present? && _1.field.visible?(action_name) }.each do |attribute| %>
+    <div class="form-group">
+      <%= render "madmin/shared/label", form: form, field: attribute.field %>
+      <%= render partial: attribute.field.to_partial_path("form"),
+      locals: {
+        field: attribute.field,
+        record: record,
+        form: form,
+        resource: resource,
+      } %>
+      <%= if attribute.field.options.description.present?
+        tag.div attribute.field.options.description, class: "form-description"
+      end %>
+    </div>
+  <% end %>
+
+  <div class="mt-8 flex">
+  <%= form.submit class:
+                "bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded" %>
+  <div class="ml-4"></div>
+  <%= link_to "Cancel",
+  (record.persisted? ? resource.show_path(record) : resource.index_path),
+  class: "bg-red-500 px-4 py-2 rounded-md text-md text-white" %>
+<% end %>
+  </div>

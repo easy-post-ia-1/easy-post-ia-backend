@@ -1,0 +1,53 @@
+es:
+  activerecord:
+    errors:
+      missing_params: "Faltan parámetros: %{params}"
+      models:
+        user:
+          attributes:
+            username:
+              blank: "El nombre de usuario no puede estar vacío."
+            email:
+              blank: "El correo electrónico no puede estar vacío."
+              invalid: "El formato del correo electrónico no es válido."
+              taken: "Este correo electrónico ya está registrado."
+            role:
+              blank: "El rol no puede estar vacío."
+              inclusion: "%{value} no es un rol válido. Los roles permitidos son EMPLOYER, EMPLOYEE y ADMIN."
+        strategy: Estrategia
+        post: Publicación
+    attributes:
+      strategy:
+        description: Descripción
+        from_schedule: Fecha de Inicio
+        to_schedule: Fecha de Fin
+        status: Estado
+        post_ids: Publicaciones
+      post:
+        content: Contenido
+        image_url: URL de la Imagen
+        status: Estado
+        error_message: Mensaje de Error
+        social_media_id: Red Social
+        strategy_id: Estrategia
+  responses:
+    success: "La solicitud fue exitosa."
+    created: "El recurso fue creado exitosamente."
+    deleted: "El recurso fue eliminado exitosamente."
+    error: "Hubo un error al procesar su solicitud."
+  strategy:
+    status:
+      pending: Pendiente
+      in_progress: En Progreso
+      completed: Completado
+      failed: Fallido
+
+  post:
+    status:
+      pending: Pendiente
+      publishing: Publicando
+      published: Publicado
+      failed_image: Error al Subir Imagen
+      failed_publish: Error al Publicar
+      failed_network: Error de Red
+      failed_auth: Error de Autenticación

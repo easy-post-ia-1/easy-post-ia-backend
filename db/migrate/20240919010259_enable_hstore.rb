@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+# EnableHstore
+class EnableHstore < ActiveRecord::Migration[7.1]
+  def change
+    enable_extension :hstore
+  end
+end
