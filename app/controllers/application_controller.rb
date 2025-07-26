@@ -12,4 +12,12 @@ class ApplicationController < ActionController::Base
   def set_locale
     I18n.locale = params[:locale] || I18n.default_locale
   end
+
+  def success_response(resource)
+    { status: { code: 200, message: I18n.t('responses.success', default: 'Success') } }.merge(resource)
+  end
+
+  def error_response(errors_array)
+    { status: { code: 422, message: I18n.t('responses.error', default: 'Error') }, errors: errors_array }
+  end
 end

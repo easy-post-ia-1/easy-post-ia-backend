@@ -4,7 +4,7 @@
 module Api
   module V1
     module Users
-      # Devise ssion controller
+      # Devise session controller
       class SessionsController < Devise::SessionsController
         include RackSessionFix
         before_action :configure_sign_in_params, only: [:create]
@@ -47,7 +47,7 @@ module Api
         def update
           Rails.logger.info "Update request received for user: #{current_user&.id}"
           Rails.logger.info "Update params: #{params.inspect}"
-          
+
           if current_user&.update(user_params)
             Rails.logger.info "User updated successfully. New did_tutorial value: #{current_user.did_tutorial}"
             render json: { user: current_user.user_json_response }, status: :ok
@@ -61,7 +61,7 @@ module Api
 
         # If you have extra params to permit, append them to the sanitizer.
         def configure_sign_in_params
-          devise_parameter_sanitizer.permit(:sign_in, keys: [:email, :password])
+          devise_parameter_sanitizer.permit(:sign_in, keys: %i[email password])
         end
 
         def respond_with(current_user, _opts = {})

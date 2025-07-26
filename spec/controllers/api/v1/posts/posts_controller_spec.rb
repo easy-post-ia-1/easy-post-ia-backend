@@ -5,8 +5,12 @@ require 'rails_helper'
 RSpec.describe Api::V1::Posts::PostsController do
   let(:team) { create(:team) }
   let(:team_employee) { create(:team) }
-  let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: team.company) }
-  let(:employee) { create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: team_employee.company) }
+  let(:admin) do
+    create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: team.company)
+  end
+  let(:employee) do
+    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: team_employee.company)
+  end
   let(:admin_team_member) { create(:team_member, user: admin, team: team) }
   let(:employee_team_member) { create(:team_member, user: employee, team: team_employee) }
   let!(:strategy_admin) { create(:strategy, company: team.company, team_member: admin_team_member) }
@@ -43,7 +47,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns a successful response with pagination' do
         get :index, params: { page: 1, page_size: 10 }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['posts']).to be_an(Array)
         expect(json_response['pagination'].keys).to match_array(%w[page pages count])
@@ -54,7 +58,7 @@ RSpec.describe Api::V1::Posts::PostsController do
         to_date = 1.day.from_now.iso8601
         get :index, params: { from_date: from_date, to_date: to_date }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['posts']).to be_an(Array)
       end
     end
@@ -77,7 +81,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns a successful response' do
         get :show, params: { id: employee_posts[0].id }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['post']['id']).to eq(employee_posts[0].id)
       end
@@ -92,7 +96,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns a not found response' do
         get :show, params: { id: 9999 }
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('Post not found')
       end
@@ -107,7 +111,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns an unauthorized response' do
         get :show, params: { id: admin_posts[0].id }
         expect(response).to have_http_status(:unauthorized)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('You are not authorized to view this post')
       end
@@ -122,11 +126,11 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'creates a new post' do
-        expect {
+        expect do
           post :create, params: { post: valid_post_params }
-        }.to change(Post, :count).by(1)
+        end.to change(Post, :count).by(1)
         expect(response).to have_http_status(:created)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(201)
         expect(json_response['post']['title']).to eq(valid_post_params[:title])
       end
@@ -139,11 +143,11 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'does not create a post' do
-        expect {
+        expect do
           post :create, params: { post: invalid_post_params }
-        }.not_to change(Post, :count)
+        end.not_to change(Post, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to be_an(Array)
       end
@@ -160,7 +164,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'updates the post' do
         put :update, params: { id: admin_posts[0].id, post: { title: 'Updated Title' } }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['post']['title']).to eq('Updated Title')
       end
@@ -176,7 +180,7 @@ RSpec.describe Api::V1::Posts::PostsController do
         original_title = admin_posts[0].title
         put :update, params: { id: admin_posts[0].id, post: { title: '' } }
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to be_an(Array)
         admin_posts[0].reload
@@ -193,7 +197,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns an unauthorized response' do
         put :update, params: { id: admin_posts[0].id, post: { title: 'Updated Title' } }
         expect(response).to have_http_status(:unauthorized)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('You are not authorized to update this post')
       end
@@ -208,11 +212,11 @@ RSpec.describe Api::V1::Posts::PostsController do
       end
 
       it 'deletes the post' do
-        expect {
+        expect do
           delete :destroy, params: { id: admin_posts[0].id }
-        }.to change(Post, :count).by(-1)
+        end.to change(Post, :count).by(-1)
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
       end
     end
@@ -226,7 +230,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns an unauthorized response' do
         delete :destroy, params: { id: admin_posts[0].id }
         expect(response).to have_http_status(:unauthorized)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('You are not authorized to delete this post')
       end
@@ -241,7 +245,7 @@ RSpec.describe Api::V1::Posts::PostsController do
       it 'returns a not found response' do
         delete :destroy, params: { id: 9999 }
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('Post not found')
       end

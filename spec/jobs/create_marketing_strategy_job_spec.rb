@@ -2,19 +2,19 @@
 
 require 'rails_helper'
 
-RSpec.describe CreateMarketingStrategyJob, type: :job do
+RSpec.describe CreateMarketingStrategyJob do
   let(:company) { create(:company) }
   let(:team) { create(:team, company: company) }
   let(:user) { create(:user, company: company) }
   let(:team_member) { create(:team_member, user: user, team: team) }
   let(:strategy) do
     create(:strategy,
-      status: :pending,
-      company: company,
-      team_member: team_member,
-      description: 'Generate marketing content',
-      from_schedule: '2025-02-25',
-      to_schedule: '2025-02-26')
+           status: :pending,
+           company: company,
+           team_member: team_member,
+           description: 'Generate marketing content',
+           from_schedule: '2025-02-25',
+           to_schedule: '2025-02-26')
   end
   let(:config_post) do
     {

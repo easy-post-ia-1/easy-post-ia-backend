@@ -5,10 +5,14 @@ require 'rails_helper'
 RSpec.describe Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper do
   # Setup all required associations and test data
   let(:company) { create(:company) }
+  let(:bedrock_client) { double('Aws::BedrockRuntime::Client') }
   let(:team) { create(:team, company: company) }
   let(:user) { create(:user, company: company) }
   let(:team_member) { create(:team_member, user: user, team: team) }
-  let(:strategy) { create(:strategy, company: company, team_member: team_member, description: 'Test strategy', from_schedule: 1.day.ago, to_schedule: 1.day.from_now) }
+  let(:strategy) do
+    create(:strategy, company: company, team_member: team_member, description: 'Test strategy', from_schedule: 1.day.ago,
+                      to_schedule: 1.day.from_now)
+  end
   let(:options) { { strategy_id: strategy.id, creator_id: user.id } }
   let(:user_prompt) { 'Generate posts about electric cars' }
 
@@ -17,8 +21,6 @@ RSpec.describe Api::V1::PublishSocialNetwork::Bedrock::CreatePostsIaHelper do
     allow(Api::V1::PublishSocialNetwork::Bedrock::Templates::CreateDefaultTemplateHelper::MarketingHelper)
       .to receive(:generate_marketing_strategy_template).and_return('Marketing strategy template: ')
   end
-
-  let(:bedrock_client) { double('Aws::BedrockRuntime::Client') }
 
   describe '.generate_text' do
     it 'returns generated text when successful' do

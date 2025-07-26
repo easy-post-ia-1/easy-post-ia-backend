@@ -28,7 +28,7 @@
 #
 require 'rails_helper'
 
-RSpec.describe Strategy, type: :model do
+RSpec.describe Strategy do
   let(:strategy) { create(:strategy) }
 
   it 'is valid with valid attributes' do
@@ -54,14 +54,14 @@ RSpec.describe Strategy, type: :model do
   end
 
   it 'is not valid if to_schedule is before from_schedule' do
-    strategy.from_schedule = Date.today
+    strategy.from_schedule = Time.zone.today
     strategy.to_schedule = 1.day.ago
     expect(strategy).not_to be_valid
-    expect(strategy.errors[:to_schedule]).to include("must be after or equal to From schedule")
+    expect(strategy.errors[:to_schedule]).to include('must be after or equal to From schedule')
   end
 
   describe 'associations' do
-    it { should have_many(:posts) }
-    it { should belong_to(:company).optional }
+    it { is_expected.to have_many(:posts) }
+    it { is_expected.to belong_to(:company).optional }
   end
 end

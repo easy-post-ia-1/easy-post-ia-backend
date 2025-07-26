@@ -7,19 +7,13 @@ class UserResource < Madmin::Resource
   attribute :email
   attribute :username
   attribute :did_tutorial
-  attribute :remember_created_at
-  attribute :reset_password_sent_at
-  attribute :reset_password_token
-  attribute :created_at, form: false
-  attribute :updated_at, form: false
+  attribute :role, :select, collection: ["EMPLOYER", "EMPLOYEE", "ADMIN"]
 
   # Associations
-  attribute :company
-  attribute :team_member
-  attribute :team
-  attribute :strategies
-  attribute :posts
-  attribute :roles
+  attribute :team_name, :string, form: false
+  attribute :strategies, form: false, show: false
+  attribute :posts, form: false, show: false
+  attribute :roles, form: false, show: false
 
   # Add scopes to easily filter records
   # scope :published
@@ -31,15 +25,19 @@ class UserResource < Madmin::Resource
 
   # Customize the display name of records in the admin area.
   def self.display_name(record)
-    record.username || record.email
+    record.username.presence || record.email.presence || "User ##{record.id}"
   end
 
   # Customize the default sort column and direction.
   def self.default_sort_column
-    "created_at"
+    'created_at'
   end
 
   def self.default_sort_direction
-    "desc"
+    'desc'
+  end
+
+  def display_team_name(record)
+    record.team&.name || "No team"
   end
 end

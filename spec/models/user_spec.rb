@@ -15,21 +15,15 @@
 #  username               :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
-#  company_id             :bigint           not null
 #
 # Indexes
 #
-#  index_users_on_company_id            (company_id)
 #  index_users_on_email                 (email) UNIQUE
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #
-# Foreign Keys
-#
-#  fk_rails_...  (company_id => companies.id)
-#
 require 'rails_helper'
 
-RSpec.describe User, type: :model do
+RSpec.describe User do
   let(:user) { create(:user) }
   let(:admin) { create(:user, role: 'ADMIN') }
   let(:employee) { create(:user, role: 'EMPLOYEE') }
@@ -55,14 +49,14 @@ RSpec.describe User, type: :model do
     create(:user, email: 'duplicate@example.com')
     duplicate_user = build(:user, email: 'duplicate@example.com')
     expect(duplicate_user).not_to be_valid
-    expect(duplicate_user.errors[:email]).to include("has already been taken")
+    expect(duplicate_user.errors[:email]).to include('has already been taken')
   end
 
   it 'is not valid with a duplicate username' do
     create(:user, username: 'duplicate_username')
     duplicate_user = build(:user, username: 'duplicate_username')
     expect(duplicate_user).not_to be_valid
-    expect(duplicate_user.errors[:username]).to include("has already been taken")
+    expect(duplicate_user.errors[:username]).to include('has already been taken')
   end
 
   it 'is not valid without a role' do
@@ -74,7 +68,7 @@ RSpec.describe User, type: :model do
   it 'is not valid with an invalid role' do
     user.role = 'INVALID'
     expect(user).not_to be_valid
-    expect(user.errors[:role]).to include("INVALID is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.")
+    expect(user.errors[:role]).to include('INVALID is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.')
   end
 
   it 'is valid with a valid role (ADMIN)' do
@@ -90,7 +84,7 @@ RSpec.describe User, type: :model do
   end
 
   describe 'associations' do
-    it { should have_many(:team_members) }
-    it { should have_many(:company_members) }
+    it { is_expected.to have_many(:team_members) }
+    it { is_expected.to have_many(:company_members) }
   end
 end

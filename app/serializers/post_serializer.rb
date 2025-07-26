@@ -1,12 +1,17 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: posts
 #
 #  id                       :bigint           not null, primary key
+#  category                 :string
 #  description              :string(500)
+#  emoji                    :string
 #  image_url                :string
 #  is_published             :boolean          default(FALSE), not null
 #  programming_date_to_post :datetime         not null
+#  status                   :integer
 #  tags                     :string(255)
 #  title                    :string(255)      not null
 #  created_at               :datetime         not null
@@ -25,5 +30,6 @@
 #  fk_rails_...  (team_member_id => team_members.id)
 #
 class PostSerializer < ActiveModel::Serializer
-  attributes :id, :content, :status_display, :error_response, :success_response, :created_at, :updated_at
-end 
+  attributes :id, :title, :description, :image_url, :tags, :category, :emoji, :programming_date_to_post, :is_published,
+             :status, :status_display, :error_response, :success_response, :created_at, :updated_at
+end

@@ -8,9 +8,7 @@ ENV['RAILS_ENV'] ||= 'test'
 # This should be done before `config/environment` is loaded if Devise initializer uses it directly.
 # However, Devise initializer might fetch it at runtime. For safety, set it early.
 ENV['DEVISE_JWT_SECRET_KEY'] ||= 'test_secret_key_for_devise_jwt_min_32_chars_long_enough'
-if ENV['DEVISE_JWT_SECRET_KEY'].length < 32
-  raise "DEVISE_JWT_SECRET_KEY for test is too short!"
-end
+raise 'DEVISE_JWT_SECRET_KEY for test is too short!' if ENV['DEVISE_JWT_SECRET_KEY'].length < 32
 
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
@@ -26,7 +24,7 @@ require 'rspec/rails'
 
 # Import support files to add extra func
 # Dir[Rails.root.glob('spec/support/**/*.rb')].each { |f| require f }
-Dir.glob(Rails.root.join('spec/support/**/*.rb')).each { |f| require f }
+Rails.root.glob('spec/support/**/*.rb').each { |f| require f }
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -78,7 +76,7 @@ SimpleCov.start do
   add_group 'Sidekiq', 'app/sidekiq'
 
   add_filter do |source_file|
-    source_file.filename.include?('app/') && !source_file.filename.include?('app/sidekiq')
+    source_file.filename.include?('app/') && source_file.filename.exclude?('app/sidekiq')
   end
 end
 SimpleCov.minimum_coverage 90
@@ -142,7 +140,7 @@ RSpec.configure do |config|
     # DatabaseCleaner[:redis].clean_with(:deletion) # Commented out for now
   end
 
-  config.around(:each) do |example|
+  config.around do |example|
     # Specify cleaning for ActiveRecord only if Sequel/Redis are not intentionally used/configured
     DatabaseCleaner[:active_record].cleaning do
       example.run

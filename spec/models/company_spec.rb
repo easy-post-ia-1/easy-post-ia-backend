@@ -5,13 +5,18 @@
 # Table name: companies
 #
 #  id         :bigint           not null, primary key
+#  code       :string
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
+# Indexes
+#
+#  index_companies_on_code  (code) UNIQUE
+#
 require 'rails_helper'
 
-RSpec.describe Company, type: :model do
+RSpec.describe Company do
   let(:company) { create(:company) }
 
   it 'is valid with valid attributes' do
@@ -28,13 +33,13 @@ RSpec.describe Company, type: :model do
     create(:company, name: 'Duplicate Company')
     duplicate_company = build(:company, name: 'Duplicate Company')
     expect(duplicate_company).not_to be_valid
-    expect(duplicate_company.errors[:name]).to include("has already been taken")
+    expect(duplicate_company.errors[:name]).to include('has already been taken')
   end
 
   describe 'associations' do
-    it { should have_many(:company_members) }
-    it { should have_many(:strategies) }
-    it { should have_one(:twitter_credential) }
+    it { is_expected.to have_many(:company_members) }
+    it { is_expected.to have_many(:strategies) }
+    it { is_expected.to have_one(:twitter_credential) }
   end
 
   describe '#fields' do

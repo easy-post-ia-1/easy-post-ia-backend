@@ -5,6 +5,7 @@
 # Table name: teams
 #
 #  id         :bigint           not null, primary key
+#  code       :string
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -12,6 +13,7 @@
 #
 # Indexes
 #
+#  index_teams_on_code        (code) UNIQUE
 #  index_teams_on_company_id  (company_id)
 #
 # Foreign Keys

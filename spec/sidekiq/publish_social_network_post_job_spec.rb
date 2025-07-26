@@ -1,8 +1,13 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'sidekiq/testing' # Required for some Sidekiq test helpers
 
 RSpec.describe PublishSocialNetworkPostJob, type: :job do
   include ActiveJob::TestHelper
+
+  # Define the subject for performing the job with args hash
+  subject(:perform_job) { described_class.new.perform({ 'post_id' => post_record.id.to_s }) }
 
   let(:company) { create(:company) }
   let(:team) { create(:team, company: company) }
@@ -23,17 +28,14 @@ RSpec.describe PublishSocialNetworkPostJob, type: :job do
     # Default successful response for media uploading
     allow(mock_x_media_uploader).to receive(:upload).and_return({ 'media_id_string' => 'media123' })
     # Mock image download via URI.open
-    allow(URI).to receive(:open).and_return(double("image_file", read: "image_data"))
+    allow(URI).to receive(:open).and_return(double('image_file', read: 'image_data'))
   end
-
-  # Define the subject for performing the job with args hash
-  subject(:perform_job) { described_class.new.perform({ 'post_id' => post_record.id.to_s }) }
 
   context 'when company has valid Twitter credentials' do
     let!(:twitter_credentials) do
       create(:credentials_twitter, company: company,
-        api_key: 'valid_key', api_key_secret: 'valid_secret',
-        access_token: 'valid_token', access_token_secret: 'valid_token_secret')
+                                   api_key: 'valid_key', api_key_secret: 'valid_secret',
+                                   access_token: 'valid_token', access_token_secret: 'valid_token_secret')
     end
 
     it 'calls PublishHelper.post, attempts to publish, and updates strategy to :posted' do
@@ -70,7 +72,7 @@ RSpec.describe PublishSocialNetworkPostJob, type: :job do
     # The job's structure is: find Post, then get strategy from Post.
     # If Post.find fails, strategy is never loaded by the job.
     it 'logs an error from the job and does not proceed' do
-      invalid_post_id_str = "-1"
+      invalid_post_id_str = '-1'
       # Mock Post.find to raise RecordNotFound for this specific ID string.
       allow(Post).to receive(:find).with(invalid_post_id_str).and_raise(ActiveRecord::RecordNotFound.new("Post not found with ID #{invalid_post_id_str}"))
 
@@ -86,16 +88,17 @@ RSpec.describe PublishSocialNetworkPostJob, type: :job do
   end
 
   context 'when X::Client.post raises X::Error' do
-    let!(:twitter_credentials) {
+    let!(:twitter_credentials) do
       create(:credentials_twitter, company: company,
-             api_key: 'k', api_key_secret: 's',
-             access_token: 't', access_token_secret: 'ts')
-    }
+                                   api_key: 'k', api_key_secret: 's',
+                                   access_token: 't', access_token_secret: 'ts')
+    end
+
     before do
       # Ensure X::Client.new is stubbed to return the mock_x_client
       allow(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).to receive(:twitter_client).and_return(mock_x_client)
       # Stub the client's post method to raise X::Error
-      allow(mock_x_client).to receive(:post).and_raise(X::Error.new("Twitter API error"))
+      allow(mock_x_client).to receive(:post).and_raise(X::Error.new('Twitter API error'))
     end
 
     it 'updates strategy to :failed_social_network' do
@@ -115,7 +118,7 @@ RSpec.describe PublishSocialNetworkPostJob, type: :job do
     it 'logs and returns if post has no strategy' do
       fake_post = double('Post', strategy: nil)
       allow(Post).to receive(:find).and_return(fake_post)
-      expect(Rails.logger).to receive(:error).with("No strategy found for Post id 123. Aborting publish.")
+      expect(Rails.logger).to receive(:error).with('No strategy found for Post id 123. Aborting publish.')
       expect(Api::V1::PublishSocialNetwork::Twitter::PublishHelper).not_to receive(:post)
       described_class.new.perform({ 'post_id' => 123 })
     end

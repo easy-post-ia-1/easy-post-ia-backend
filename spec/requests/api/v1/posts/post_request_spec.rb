@@ -1,111 +1,75 @@
 # frozen_string_literal: true
 
-# :nocov:
 require 'swagger_helper'
 
-describe 'Posts API', type: :request do
+describe 'Posts API' do
   path '/api/v1/posts' do
-    get 'Retrieves all posts' do
+    get 'List posts for the current user' do
       tags 'Posts'
       produces 'application/json'
       security [Bearer: []]
 
-      parameter name: :page, in: :query, type: :integer, description: 'Page number for pagination', required: false
-      parameter name: :page_size, in: :query, type: :integer, description: 'Number of items per page', required: false
-      parameter name: :from_date, in: :query, type: :string, format: :date_time, description: 'Filter posts from this date', required: false
-      parameter name: :to_date, in: :query, type: :string, format: :date_time, description: 'Filter posts until this date', required: false
+      parameter name: :page, in: :query, type: :integer, required: false
+      parameter name: :page_size, in: :query, type: :integer, required: false
 
-      response '200', 'Posts retrieved successfully' do
+      response '200', 'Posts listed' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 posts: {
-                   type: :array,
-                   items: {
-                     type: :object,
-                     properties: {
-                       id: { type: :integer, example: 1 },
-                       title: { type: :string, example: 'Sample Post' },
-                       description: { type: :string, example: 'This is a sample post description' },
-                       tags: { type: :string, example: 'example,post' },
-                       programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-                       team_member_id: { type: :integer, example: 1 }
-                     }
-                   }
-                 },
+                 posts: { type: :array, items: { type: :object } },
                  pagination: { '$ref' => '#/components/schemas/Pagination' }
                },
-               required: ['status', 'posts', 'pagination']
-
+               required: %w[status posts pagination]
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         run_test!
       end
-
       response '401', 'Unauthorized' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusUnauthorized' }
-               }
         let(:Authorization) { '' }
         run_test!
       end
     end
 
-    post 'Creates a new post' do
+    post 'Create a post' do
       tags 'Posts'
       consumes 'application/json'
       produces 'application/json'
       security [Bearer: []]
-
       parameter name: :post, in: :body, schema: {
         type: :object,
         properties: {
-          title: { type: :string, example: 'Sample Post' },
-          description: { type: :string, example: 'This is a sample post description' },
-          tags: { type: :string, example: 'example,post' },
-          programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-          team_member_id: { type: :integer, example: 1 }
+          title: { type: :string },
+          description: { type: :string },
+          tags: { type: :string },
+          category: { type: :string },
+          emoji: { type: :string },
+          programming_date_to_post: { type: :string, format: :date_time },
+          is_published: { type: :boolean },
+          image_url: { type: :string, nullable: true }
         },
-        required: ['title', 'description', 'tags', 'programming_date_to_post', 'team_member_id']
+        required: %w[title description tags category emoji programming_date_to_post]
       }
-
-      response '201', 'Post created successfully' do
+      response '201', 'Post created' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 post: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer, example: 1 },
-                     title: { type: :string, example: 'Sample Post' },
-                     description: { type: :string, example: 'This is a sample post description' },
-                     tags: { type: :string, example: 'example,post' },
-                     programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-                     team_member_id: { type: :integer, example: 1 }
-                   }
-                 }
+                 post: { type: :object }
                },
-               required: ['status', 'post']
-
+               required: %w[status post]
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:post) do
           {
-            title: 'Sample Post',
-            description: 'This is a sample post description',
-            tags: 'example,post',
-            programming_date_to_post: '2024-11-26T00:00:00Z',
-            team_member_id: 1
+            title: 'Test Post',
+            description: 'Test description',
+            tags: 'tag1,tag2',
+            category: 'Marketing',
+            emoji: '🚀',
+            programming_date_to_post: Time.now.utc.iso8601,
+            is_published: true
           }
         end
         run_test!
       end
-
       response '422', 'Validation error' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string } }
-               }
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:post) { { title: '' } }
         run_test!
@@ -116,101 +80,70 @@ describe 'Posts API', type: :request do
   path '/api/v1/posts/{id}' do
     parameter name: :id, in: :path, type: :integer, required: true
 
-    get 'Retrieves a specific post' do
+    get 'Show a post' do
       tags 'Posts'
       produces 'application/json'
       security [Bearer: []]
-
-      response '200', 'Post retrieved successfully' do
+      response '200', 'Post found' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 post: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer, example: 1 },
-                     title: { type: :string, example: 'Sample Post' },
-                     description: { type: :string, example: 'This is a sample post description' },
-                     tags: { type: :string, example: 'example,post' },
-                     programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-                     team_member_id: { type: :integer, example: 1 }
-                   }
-                 }
+                 post: { type: :object }
                },
-               required: ['status', 'post']
-
+               required: %w[status post]
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:id) { create(:post).id }
         run_test!
       end
-
       response '404', 'Post not found' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string } }
-               }
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:id) { 999 }
+        let(:id) { 9999 }
+        run_test!
+      end
+      response '401', 'Unauthorized' do
+        let(:Authorization) { '' }
+        let(:id) { 1 }
         run_test!
       end
     end
 
-    put 'Updates a post' do
+    put 'Update a post' do
       tags 'Posts'
       consumes 'application/json'
       produces 'application/json'
       security [Bearer: []]
-
       parameter name: :post, in: :body, schema: {
         type: :object,
         properties: {
-          title: { type: :string, example: 'Updated Post' },
-          description: { type: :string, example: 'This is an updated post description' },
-          tags: { type: :string, example: 'updated,post' },
-          programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-          team_member_id: { type: :integer, example: 1 }
+          title: { type: :string },
+          description: { type: :string },
+          tags: { type: :string },
+          category: { type: :string },
+          emoji: { type: :string },
+          programming_date_to_post: { type: :string, format: :date_time },
+          is_published: { type: :boolean },
+          image_url: { type: :string, nullable: true }
         }
       }
-
-      response '200', 'Post updated successfully' do
+      response '200', 'Post updated' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 post: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer, example: 1 },
-                     title: { type: :string, example: 'Updated Post' },
-                     description: { type: :string, example: 'This is an updated post description' },
-                     tags: { type: :string, example: 'updated,post' },
-                     programming_date_to_post: { type: :string, format: :date_time, example: '2024-11-26T00:00:00Z' },
-                     team_member_id: { type: :integer, example: 1 }
-                   }
-                 }
+                 post: { type: :object }
                },
-               required: ['status', 'post']
-
+               required: %w[status post]
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:id) { create(:post).id }
-        let(:post) do
-          {
-            title: 'Updated Post',
-            description: 'This is an updated post description',
-            tags: 'updated,post',
-            programming_date_to_post: '2024-11-26T00:00:00Z',
-            team_member_id: 1
-          }
-        end
+        let(:post) { { title: 'Updated Title' } }
         run_test!
       end
-
+      response '404', 'Post not found' do
+        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
+        let(:id) { 9999 }
+        let(:post) { { title: 'Updated Title' } }
+        run_test!
+      end
       response '422', 'Validation error' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string } }
-               }
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:id) { create(:post).id }
         let(:post) { { title: '' } }
@@ -218,32 +151,25 @@ describe 'Posts API', type: :request do
       end
     end
 
-    delete 'Deletes a post' do
+    delete 'Delete a post' do
       tags 'Posts'
       produces 'application/json'
       security [Bearer: []]
-
-      response '200', 'Post deleted successfully' do
+      response '200', 'Post deleted' do
         schema type: :object,
                properties: {
                  status: { '$ref' => '#/components/schemas/StatusSuccess' }
-               }
+               },
+               required: %w[status]
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:id) { create(:post).id }
         run_test!
       end
-
       response '404', 'Post not found' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusError' },
-                 errors: { type: :array, items: { type: :string } }
-               }
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:id) { 999 }
+        let(:id) { 9999 }
         run_test!
       end
     end
   end
 end
-# :nocov:

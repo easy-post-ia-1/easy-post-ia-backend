@@ -11,17 +11,17 @@ RSpec.describe Api::V1::Users::RegistrationsController do
     @request.env['devise.mapping'] = Devise.mappings[:user]
   end
 
-  let(:company) { create(:company) }
-  let(:admin) { 
+  let(:company) { create(:company, code: 'TESTCODE') }
+  let(:admin) do
     user = create(:user, company: company)
     user.add_role(:admin)
     user
-  }
-  let(:employee) { 
+  end
+  let(:employee) do
     user = create(:user, company: company)
     user.add_role(:employee)
     user
-  }
+  end
 
   let(:valid_user_params) do
     {
@@ -29,7 +29,7 @@ RSpec.describe Api::V1::Users::RegistrationsController do
       email: 'test@example.com',
       password: 'password123',
       role: 'EMPLOYEE',
-      company_id: company.id
+      company_code: company.code
     }
   end
 
@@ -38,19 +38,19 @@ RSpec.describe Api::V1::Users::RegistrationsController do
       username: '',
       email: 'invalid_email',
       password: '',
-      company_id: company.id
+      company_code: company.code
     }
   end
 
   describe 'POST #create' do
     context 'when the request is valid' do
       it 'creates a new user' do
-        expect {
+        expect do
           post :create, params: valid_user_params
           puts response.body
-        }.to change(User, :count).by(1)
+        end.to change(User, :count).by(1)
         expect(response).to have_http_status(:created)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(201)
         expect(json_response['user']['username']).to eq(valid_user_params[:username])
         expect(json_response['user']['email']).to eq(valid_user_params[:email])
@@ -69,39 +69,41 @@ RSpec.describe Api::V1::Users::RegistrationsController do
 
     context 'when the request is invalid' do
       it 'does not create a user' do
-        expect {
+        expect do
           post :create, params: invalid_user_params
           puts response.body
-        }.not_to change(User, :count)
+        end.not_to change(User, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to be_an(Array)
       end
     end
 
     context 'when the email is already taken' do
-      before { 
+      before do
         user = create(:user, email: valid_user_params[:email], company: company, username: 'other_user')
         user.add_role(:employee)
-      }
+      end
+
       it 'does not create a user' do
         post :create, params: valid_user_params
         puts response.body
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['errors'].join).to match(/Email has already been taken|email has already been taken|Email Email can't be blank/i)
       end
     end
 
     context 'when the username is already taken' do
-      before { 
+      before do
         user = create(:user, username: valid_user_params[:username], company: company, email: 'other@example.com')
         user.add_role(:employee)
-      }
+      end
+
       it 'does not create a user' do
         post :create, params: valid_user_params
         puts response.body
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['errors'].join).to match(/Username has already been taken|username has already been taken|Username Username can't be blank/i)
       end
     end
@@ -123,6 +125,17 @@ RSpec.describe Api::V1::Users::RegistrationsController do
 
       it 'verify method enabled? in RackSessionFix::FakeRackSession' do
         expect(RackSessionFix::FakeRackSession.new.enabled?).to be(false)
+      end
+    end
+
+    context 'when the company_code is invalid' do
+      it 'does not create a user and returns invalid company code error' do
+        expect do
+          post :create, params: valid_user_params.merge(company_code: 'INVALIDCODE')
+        end.not_to change(User, :count)
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = response.parsed_body
+        expect(json_response['errors']).to include('Invalid company code')
       end
     end
   end

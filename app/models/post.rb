@@ -5,10 +5,13 @@
 # Table name: posts
 #
 #  id                       :bigint           not null, primary key
+#  category                 :string
 #  description              :string(500)
+#  emoji                    :string
 #  image_url                :string
 #  is_published             :boolean          default(FALSE), not null
 #  programming_date_to_post :datetime         not null
+#  status                   :integer
 #  tags                     :string(255)
 #  title                    :string(255)      not null
 #  created_at               :datetime         not null
@@ -28,16 +31,18 @@
 #
 class Post < ApplicationRecord
   belongs_to :team_member
-  belongs_to :strategy
+  belongs_to :strategy, optional: true
 
   has_one :team, through: :team_member
 
   validates :title, presence: true
   validates :programming_date_to_post, presence: true
+  validates :category, presence: true
+  validates :emoji, presence: true
 
   attribute :status, :integer, default: 0
 
-  enum status: {
+  enum :status, {
     pending: 0,
     publishing: 1,
     published: 2,

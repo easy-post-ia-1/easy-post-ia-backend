@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Api::V1::StrategiesController do
@@ -6,7 +8,9 @@ RSpec.describe Api::V1::StrategiesController do
   let(:team) { create(:team, company: company) }
   let(:team_employee) { create(:team, company: company_employee) }
   let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: company) }
-  let(:employee) { create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: company_employee) }
+  let(:employee) do
+    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: company_employee)
+  end
   let(:admin_team_member) { create(:team_member, user: admin, team: team) }
   let(:employee_team_member) { create(:team_member, user: employee, team: team_employee) }
   let!(:strategy_admin) { create(:strategy, team_member: admin_team_member, company: company) }
@@ -38,7 +42,7 @@ RSpec.describe Api::V1::StrategiesController do
       it 'returns a successful response with pagination' do
         get :index, params: { page: 1, page_size: 10 }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['strategies']).to be_an(Array)
         expect(json_response['pagination']).to include('page', 'per_page', 'pages', 'count')
@@ -63,7 +67,7 @@ RSpec.describe Api::V1::StrategiesController do
       it 'returns a successful response' do
         get :show, params: { id: strategy_employee.id }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['strategy']['id']).to eq(strategy_employee.id)
         expect(json_response['strategy']['posts']).to be_an(Array)
@@ -79,7 +83,7 @@ RSpec.describe Api::V1::StrategiesController do
       it 'returns a not found response' do
         get :show, params: { id: 9999 }
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('Strategy not found')
       end
@@ -94,7 +98,7 @@ RSpec.describe Api::V1::StrategiesController do
       it 'returns a not found response' do
         get :show, params: { id: strategy_admin.id }
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('Strategy not found')
       end
@@ -109,11 +113,11 @@ RSpec.describe Api::V1::StrategiesController do
       end
 
       it 'creates a new strategy' do
-        expect {
+        expect do
           post :create, params: valid_strategy_params
-        }.to change(Strategy, :count).by(1)
+        end.to change(Strategy, :count).by(1)
         expect(response).to have_http_status(:created)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(201)
         expect(json_response['strategy']['id']).to be_present
       end
@@ -126,19 +130,21 @@ RSpec.describe Api::V1::StrategiesController do
       end
 
       it 'does not create a strategy' do
-        expect {
+        expect do
           post :create, params: invalid_strategy_params
-        }.not_to change(Strategy, :count)
+        end.not_to change(Strategy, :count)
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to be_an(Array)
       end
     end
 
     context 'when user is not associated with a team' do
-      let(:user_without_team) { create(:user, role: 'EMPLOYEE', username: 'no_team_user', email: 'noteam@example.com', company: company) }
-      
+      let(:user_without_team) do
+        create(:user, role: 'EMPLOYEE', username: 'no_team_user', email: 'noteam@example.com', company: company)
+      end
+
       before do
         @request.env['devise.mapping'] = Devise.mappings[:user]
         sign_in user_without_team
@@ -147,18 +153,10 @@ RSpec.describe Api::V1::StrategiesController do
       it 'returns an error' do
         post :create, params: valid_strategy_params
         expect(response).to have_http_status(:unprocessable_entity)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('User is not associated with a team or company')
       end
     end
   end
-
-  describe 'PUT #update' do
-    # Skipped: No route for update
-  end
-
-  describe 'DELETE #destroy' do
-    # Skipped: No route for destroy
-  end
-end 
+end

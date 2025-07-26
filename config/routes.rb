@@ -18,12 +18,24 @@ Rails.application.routes.draw do
         end
       end
 
+      # Dashboard routes
+      namespace :dashboard do
+        get :employer_metrics
+      end
+
       # Other routes
       resources :posts, controller: 'posts/posts', only: %i[index show create update destroy]
 
+      # Templates routes
+      resources :templates, only: %i[index show create update destroy] do
+        collection do
+          get :categories
+        end
+      end
+
       # Routes for StrategiesController
-      resources :strategies, only: [:index, :show] do
-        resources :posts, only: [:index, :create]
+      resources :strategies, only: %i[index show] do
+        resources :posts, only: %i[index create]
       end
       post '/strategies/create', to: 'strategies#create'
 

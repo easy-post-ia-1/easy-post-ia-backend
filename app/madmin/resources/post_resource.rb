@@ -8,6 +8,8 @@ class PostResource < Madmin::Resource
   attribute :description
   attribute :image_url
   attribute :tags
+  attribute :category
+  attribute :emoji
   attribute :programming_date_to_post
   attribute :is_published
   attribute :created_at, form: false
@@ -33,10 +35,10 @@ class PostResource < Madmin::Resource
 
   # Customize the default sort column and direction.
   def self.default_sort_column
-    "created_at"
+    'created_at'
   end
 
   def self.default_sort_direction
-    "desc"
+    'desc'
   end
 end

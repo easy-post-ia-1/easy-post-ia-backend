@@ -8,5 +8,7 @@ namespace :madmin do
   resources :team_members
   resources :users
   resources :jwt_denylists
+  resources :credentials_twitters
+  resources :strategies
   root to: 'dashboard#show'
 end

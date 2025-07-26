@@ -5,8 +5,6 @@ module Api
   module V1
     # Strategies controller
     class StrategiesController < ApplicationController
-      include Pagy::Backend
-
       before_action :authenticate_user!
       before_action :validate_params, only: [:create]
       before_action :set_pagination_params, only: [:index]
@@ -16,15 +14,17 @@ module Api
       def index
         @pagy, @strategies = pagy(current_user.strategies, items: @page_size)
         render json: success_response({
-          strategies: @strategies.as_json(methods: [:posts_count], include: { posts: { only: [:id] } }),
-          pagination: pagy_metadata(@pagy)
-        }), status: :ok
+                                        strategies: @strategies.as_json(methods: [:posts_count],
+                                                                        include: { posts: { only: [:id] } }),
+                                        pagination: pagy_metadata(@pagy)
+                                      }), status: :ok
       end
 
       # GET /api/v1/strategies/:id
       def show
         if @strategy
-          render json: success_response(strategy: @strategy.as_json(methods: [:posts_count], include: { posts: { only: [:id] } })), status: :ok
+          render json: success_response(strategy: @strategy.as_json(methods: [:posts_count], include: { posts: { only: [:id] } })),
+                 status: :ok
         else
           render json: error_response(['Strategy not found']), status: :not_found
         end
@@ -34,7 +34,7 @@ module Api
       def create
         # Get the current user's team member and company
         team_member = current_user.team_member
-        company = current_user.company
+        company = team_member.team.company
 
         unless team_member && company
           render json: error_response(['User is not associated with a team or company']), status: :unprocessable_entity
@@ -56,7 +56,7 @@ module Api
           creator_id: current_user.id,
           strategy_id: strategy.id
         )
-        
+
         res = CreateMarketingStrategyJob.perform_now(strategy_data)
         render json: creation_success_response(res), status: :created
       rescue ActiveRecord::RecordInvalid => e
@@ -105,7 +105,7 @@ module Api
       end
 
       def creation_success_response(strategy)
-        { 
+        {
           status: { code: 201, message: I18n.t('responses.created') },
           strategy: {
             id: strategy[:strategy_id],

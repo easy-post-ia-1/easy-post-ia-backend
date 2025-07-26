@@ -10,18 +10,18 @@ class Ability
       can :manage, :all
 
     elsif user.has_role?(:employer)
-      can :manage, Post, company_id: user.company_id
-      can :manage, Strategy, company_id: user.company_id
-      can :manage, Team, company_id: user.company_id
-      can :manage, User, company_id: user.company_id
-      can :read, Company, id: user.company_id
+      can :manage, Post
+      can :manage, Strategy
+      can :manage, Team
+      can :manage, User
+      can :read, Company
 
     elsif user.has_role?(:employee)
-      can [:read, :update], Post, team_member: { user_id: user.id }
-      can [:read, :update], Strategy, team_member: { user_id: user.id }
+      can %i[read update], Post, team_member: { user_id: user.id }
+      can %i[read update], Strategy, team_member: { user_id: user.id }
       can :read, User, id: user.id
-      can :read, Company, id: user.company_id
+      can :read, Company
       can :read, Team, team_members: { user_id: user.id }
     end
   end
-end 
+end
