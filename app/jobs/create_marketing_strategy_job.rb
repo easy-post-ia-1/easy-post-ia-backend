@@ -12,7 +12,7 @@ class CreateMarketingStrategyJob < ApplicationJob
 
     # Find the strategy by the provided strategy_id (created by the controller)
     st = Strategy.find_by(id: config_post[:strategy_id])
-    
+
     unless st
       Rails.logger.error("Strategy not found with ID: #{config_post[:strategy_id]}")
       return { status: :error, message: 'Strategy not found', posts: [], strategy_id: nil }
@@ -32,6 +32,13 @@ class CreateMarketingStrategyJob < ApplicationJob
       res_posts = []
       if result[:status] == :success && result[:posts].present?
         result[:posts].each do |post_id|
+          # TODO: 1. All job is work and test with my twitter.
+          # 2. Do models and terraform dev.
+          # 3. upload github and get in the server and upload this, verify work.
+          # 4. Generate application.
+          # 5. Do the sena videos.
+          # 6. Do technical manuals.
+
           job_name = "PublishSocialNetworkPostJob-#{post_id}-#{Time.now.to_i}"
           schedule_post = Sidekiq::Cron::Job.new(
             name: job_name,

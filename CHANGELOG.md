@@ -2,6 +2,19 @@
 
 This document lists breaking changes for each major release.
 
+
+## v0.1.0 (25/07/2025)
+
+Feature, KAN-80, KAN-77, KAN-81,: Add project documentation and enhance API responses
+
+- Introduced `ACTA_PROYECTO.md` and `DOCUMENTACION_TECNICA.md` for comprehensive project documentation.
+- Updated `README.md` to include links to the new documentation files.
+- Enhanced `ApplicationController` with `success_response` and `error_response` methods for standardized API responses.
+- Added new `DashboardController`, `TemplatesController`, and `PostsController` with improved error handling and response formatting.
+- Implemented new model `Template` and updated existing models (`Company`, `Post`, `Team`, etc.) to include new attributes and associations.
+- Added migrations for new fields and relationships, including `code` for `Company` and `Team`, and `category` and `emoji` for `Post`.
+- Updated tests to cover new features and ensure existing functionality remains intact.
+
 ## v0.0.11 (26/06/2025)
 
 Feature KAN-48, KAN-74, KAN-71: Implement user roles and permissions with Rolify

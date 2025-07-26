@@ -5,10 +5,13 @@
 # Table name: posts
 #
 #  id                       :bigint           not null, primary key
+#  category                 :string
 #  description              :string(500)
+#  emoji                    :string
 #  image_url                :string
 #  is_published             :boolean          default(FALSE), not null
 #  programming_date_to_post :datetime         not null
+#  status                   :integer
 #  tags                     :string(255)
 #  title                    :string(255)      not null
 #  created_at               :datetime         not null
@@ -28,13 +31,14 @@
 #
 require 'rails_helper'
 
-RSpec.describe Post, type: :model do
+RSpec.describe Post do
   let(:strategy) do
     create(:strategy, from_schedule: Time.current, to_schedule: 1.hour.from_now, status: :in_progress)
   end
   let(:team_member) { create(:team_member) }
   let(:post) do
-    create(:post, programming_date_to_post: Time.new(2025, 3, 15, 14, 30), strategy: strategy, team_member: team_member)
+    create(:post, programming_date_to_post: Time.zone.local(2025, 3, 15, 14, 30), strategy: strategy,
+                  team_member: team_member)
   end
 
   describe '#fields' do
@@ -56,12 +60,12 @@ RSpec.describe Post, type: :model do
 
   describe '.programming_date_to_cron' do
     it 'returns a cron format for the given post' do
-      cron_expression = Post.programming_date_to_cron(post.id)
+      cron_expression = described_class.programming_date_to_cron(post.id)
       expect(cron_expression).to eq('30 14 15 03 *')
     end
 
     it 'returns nil if the post does not exist' do
-      expect(Post.programming_date_to_cron(nil)).to be_nil
+      expect(described_class.programming_date_to_cron(nil)).to be_nil
     end
   end
 
@@ -90,17 +94,17 @@ RSpec.describe Post, type: :model do
   it 'is not valid without a team_member' do
     post.team_member = nil
     expect(post).not_to be_valid
-    expect(post.errors[:team_member]).to include("must exist")
+    expect(post.errors[:team_member]).to include('must exist')
   end
 
   it 'is not valid without a strategy' do
     post.strategy = nil
     expect(post).not_to be_valid
-    expect(post.errors[:strategy]).to include("must exist")
+    expect(post.errors[:strategy]).to include('must exist')
   end
 
   describe 'associations' do
-    it { should belong_to(:team_member) }
-    it { should belong_to(:strategy) }
+    it { is_expected.to belong_to(:team_member) }
+    it { is_expected.to belong_to(:strategy) }
   end
 end

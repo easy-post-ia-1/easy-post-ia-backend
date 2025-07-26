@@ -11,19 +11,19 @@ class StrategyResource < Madmin::Resource
 
   # Associations
   attribute :team_member
-  attribute :posts
+  attribute :posts, show: false, form: false
 
-  # Uncomment this to customize the display name of records in the admin:
-  # def self.display_name(record)
-  #   record.name
-  # end
+  # Customize the display name of records in the admin:
+  def self.display_name(record)
+    record.description
+  end
 
-  # Uncomment this to customize the default sort column and direction:
-  # def self.default_sort_column
-  #   "created_at"
-  # end
+  # Customize the default sort column and direction:
+  def self.default_sort_column
+    "created_at"
+  end
 
-  # def self.default_sort_direction
-  #   "desc"
-  # end
-end 
+  def self.default_sort_direction
+    "desc"
+  end
+end

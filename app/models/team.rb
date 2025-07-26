@@ -5,6 +5,7 @@
 # Table name: teams
 #
 #  id         :bigint           not null, primary key
+#  code       :string
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -12,6 +13,7 @@
 #
 # Indexes
 #
+#  index_teams_on_code        (code) UNIQUE
 #  index_teams_on_company_id  (company_id)
 #
 # Foreign Keys
@@ -24,6 +26,8 @@ class Team < ApplicationRecord
   has_many :users, through: :team_members
   has_many :strategies, through: :team_members
   has_many :posts, through: :team_members
+  has_many :templates, dependent: :destroy
 
+  validates :code, presence: true, uniqueness: true
   # Add validations as needed
 end

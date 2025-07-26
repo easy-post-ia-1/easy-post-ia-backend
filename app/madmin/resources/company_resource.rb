@@ -9,10 +9,10 @@ class CompanyResource < Madmin::Resource
   attribute :updated_at, form: false
 
   # Associations
-  attribute :users
-  attribute :teams
-  attribute :team_members
-  attribute :twitter_credentials
+  attribute :users, form: false, show: false
+  attribute :teams, form: false, show: false
+  attribute :team_members, form: false, show: false
+  attribute :twitter_credentials, form: false, show: false
 
   # Add scopes to easily filter records
   # scope :published
@@ -29,10 +29,10 @@ class CompanyResource < Madmin::Resource
 
   # Customize the default sort column and direction.
   def self.default_sort_column
-    "created_at"
+    'created_at'
   end
 
   def self.default_sort_direction
-    "desc"
+    'desc'
   end
 end

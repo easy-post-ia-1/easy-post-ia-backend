@@ -37,7 +37,7 @@ class Strategy < ApplicationRecord
 
   attribute :status, :integer, default: 0
 
-  enum status: {
+  enum :status, {
     pending: 0,
     in_progress: 1,
     completed: 2,
@@ -57,7 +57,7 @@ class Strategy < ApplicationRecord
   end
 
   def posts_failed_count
-    posts.where(status: [:failed_image, :failed_publish, :failed_network, :failed_auth]).count
+    posts.where(status: %i[failed_image failed_publish failed_network failed_auth]).count
   end
 
   def posts_pending_count
@@ -69,9 +69,7 @@ class Strategy < ApplicationRecord
   end
 
   # Method to return the total count of posts
-  def posts_count
-    posts.count
-  end
+  delegate :count, to: :posts, prefix: true
 
   private
 

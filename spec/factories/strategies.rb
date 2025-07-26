@@ -28,7 +28,10 @@
 #
 FactoryBot.define do
   factory :strategy do
-    description { ['Q1 Marketing Campaign', 'Product Launch Strategy', 'Social Media Engagement Plan', 'Brand Awareness Initiative', 'Customer Retention Program'].sample }
+    description do
+      ['Q1 Marketing Campaign', 'Product Launch Strategy', 'Social Media Engagement Plan', 'Brand Awareness Initiative',
+       'Customer Retention Program'].sample
+    end
     from_schedule { Time.current }
     to_schedule { 1.day.from_now }
     status { %i[pending in_progress completed].sample }

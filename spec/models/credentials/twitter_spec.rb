@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: credentials_twitters
@@ -21,6 +23,6 @@
 #
 require 'rails_helper'
 
-RSpec.describe Credentials::Twitter, type: :model do
+RSpec.describe Credentials::Twitter do
   pending "add some examples to (or delete) #{__FILE__}"
 end

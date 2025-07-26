@@ -11,20 +11,28 @@ describe 'Users API' do
       consumes 'application/json'
       produces 'application/json'
 
-      parameter name: :signup_params, in: :body, schema: {
+      parameter name: :user, in: :body, schema: {
         type: :object,
         properties: {
-          username: { type: :string, description: 'The username of the user', example: 'test_user' },
-          email: { type: :string, format: :email, description: 'The email address of the user', example: 'test_user@example.com' },
-          password: { type: :string, description: 'The password of the user', example: 'password1234' },
-          role: {
-            type: :string,
-            enum: %w[EMPLOYEE ADMIN CUSTOMER],
-            description: 'The role of the user (e.g., EMPLOYEE, ADMIN, CUSTOMER)',
-            example: 'EMPLOYEE'
+          user: {
+            type: :object,
+            properties: {
+              username: { type: :string, description: 'The username of the user', example: 'test_user' },
+              email: { type: :string, format: :email, description: 'The email address of the user', example: 'test_user@example.com' },
+              password: { type: :string, description: 'The password of the user (min 6, max 128 characters)', example: 'Password1234', minLength: 6, maxLength: 128 },
+              role: {
+                type: :string,
+                enum: %w[EMPLOYEE ADMIN CUSTOMER],
+                description: 'The role of the user (e.g., EMPLOYEE, ADMIN, CUSTOMER)',
+                example: 'EMPLOYEE'
+              },
+              company_code: { type: :string, description: 'The code of the company', example: 'COMPANY123' },
+              team_code: { type: :string, description: 'The code of the team', example: 'TEAM456' }
+            },
+            required: %w[username email password role company_code team_code]
           }
         },
-        required: %w[username email password role]
+        required: ['user']
       }
 
       response '201', 'User created successfully' do
@@ -39,17 +47,21 @@ describe 'Users API' do
                      email: { type: :string, example: 'test_user@example.com' },
                      role: { type: :string, example: 'EMPLOYEE' }
                    },
-                   required: ['id', 'username', 'email', 'role']
+                   required: %w[id username email role]
                  }
                },
-               required: ['status', 'user']
+               required: %w[status user]
 
-        let(:signup_params) do
+        let(:user) do
           {
-            username: 'test_user',
-            email: 'test_user@example.com',
-            password: 'password1234',
-            role: 'EMPLOYEE'
+            user: {
+              username: ENV['E2E_TEST_USERNAME'] || 'test_user',
+              email: ENV['E2E_TEST_EMAIL'] || 'test_user@example.com',
+              password: ENV['E2E_TEST_PASSWORD'] || 'Password1234',
+              role: 'EMPLOYER',
+              company_code: 'COMPANY123',
+              team_code: 'TEAM456'
+            }
           }
         end
         run_test!
@@ -61,12 +73,16 @@ describe 'Users API' do
                  status: { '$ref' => '#/components/schemas/StatusError' },
                  errors: { type: :array, items: { type: :string } }
                }
-        let(:signup_params) do
+        let(:user) do
           {
-            username: '',
-            email: 'invalid_email',
-            password: 'short',
-            role: 'INVALID_ROLE'
+            user: {
+              username: '',
+              email: 'invalid_email',
+              password: 'short',
+              role: 'INVALID_ROLE',
+              company_code: '',
+              team_code: ''
+            }
           }
         end
         run_test!
@@ -85,7 +101,7 @@ describe 'Users API' do
                  error: { type: :string, example: 'Invalid credentials' }
                }
 
-        let(:Authorization) { "Basic #{Base64.strict_encode64('bogus:bogus') }" }
+        let(:Authorization) { "Basic #{Base64.strict_encode64('bogus:bogus')}" }
 
         xit do |response|
           expect(response.status).to eq(401)

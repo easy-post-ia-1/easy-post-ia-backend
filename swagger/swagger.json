@@ -5,7 +5,7 @@
     "version": "v1"
   },
   "paths": {
-    "/api/v1/me/company_social_status": {
+    "/api/v1/companies/company_social_status/me": {
       "get": {
         "summary": "Retrieves social network credential status for the current user's company",
         "tags": [
@@ -178,9 +178,75 @@
         }
       }
     },
+    "/api/v1/dashboard/employer_metrics": {
+      "get": {
+        "summary": "Get employer metrics for the current user",
+        "tags": [
+          "Dashboard"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metrics retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "totalStrategies": {
+                      "type": "integer"
+                    },
+                    "totalPosts": {
+                      "type": "integer"
+                    },
+                    "publishedPosts": {
+                      "type": "integer"
+                    },
+                    "failedPosts": {
+                      "type": "integer"
+                    },
+                    "pendingPosts": {
+                      "type": "integer"
+                    },
+                    "postsPerStrategy": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "totalStrategies",
+                    "totalPosts",
+                    "publishedPosts",
+                    "failedPosts",
+                    "pendingPosts",
+                    "postsPerStrategy"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/api/v1/posts": {
       "get": {
-        "summary": "Retrieves all posts",
+        "summary": "List posts for the current user",
         "tags": [
           "Posts"
         ],
@@ -193,7 +259,6 @@
           {
             "name": "page",
             "in": "query",
-            "description": "Page number for pagination",
             "required": false,
             "schema": {
               "type": "integer"
@@ -202,36 +267,15 @@
           {
             "name": "page_size",
             "in": "query",
-            "description": "Number of items per page",
             "required": false,
             "schema": {
               "type": "integer"
-            }
-          },
-          {
-            "name": "from_date",
-            "in": "query",
-            "format": "date_time",
-            "description": "Filter posts from this date",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "to_date",
-            "in": "query",
-            "format": "date_time",
-            "description": "Filter posts until this date",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Posts retrieved successfully",
+            "description": "Posts listed",
             "content": {
               "application/json": {
                 "schema": {
@@ -243,34 +287,7 @@
                     "posts": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "integer",
-                            "example": 1
-                          },
-                          "title": {
-                            "type": "string",
-                            "example": "Sample Post"
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "This is a sample post description"
-                          },
-                          "tags": {
-                            "type": "string",
-                            "example": "example,post"
-                          },
-                          "programming_date_to_post": {
-                            "type": "string",
-                            "format": "date_time",
-                            "example": "2024-11-26T00:00:00Z"
-                          },
-                          "team_member_id": {
-                            "type": "integer",
-                            "example": 1
-                          }
-                        }
+                        "type": "object"
                       }
                     },
                     "pagination": {
@@ -287,24 +304,12 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusUnauthorized"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Unauthorized"
           }
         }
       },
       "post": {
-        "summary": "Creates a new post",
+        "summary": "Create a post",
         "tags": [
           "Posts"
         ],
@@ -316,7 +321,7 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": "Post created successfully",
+            "description": "Post created",
             "content": {
               "application/json": {
                 "schema": {
@@ -326,34 +331,7 @@
                       "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "example": 1
-                        },
-                        "title": {
-                          "type": "string",
-                          "example": "Sample Post"
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "This is a sample post description"
-                        },
-                        "tags": {
-                          "type": "string",
-                          "example": "example,post"
-                        },
-                        "programming_date_to_post": {
-                          "type": "string",
-                          "format": "date_time",
-                          "example": "2024-11-26T00:00:00Z"
-                        },
-                        "team_member_id": {
-                          "type": "integer",
-                          "example": 1
-                        }
-                      }
+                      "type": "object"
                     }
                   },
                   "required": [
@@ -365,25 +343,7 @@
             }
           },
           "422": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusError"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Validation error"
           }
         },
         "requestBody": {
@@ -393,33 +353,39 @@
                 "type": "object",
                 "properties": {
                   "title": {
-                    "type": "string",
-                    "example": "Sample Post"
+                    "type": "string"
                   },
                   "description": {
-                    "type": "string",
-                    "example": "This is a sample post description"
+                    "type": "string"
                   },
                   "tags": {
-                    "type": "string",
-                    "example": "example,post"
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
                   },
                   "programming_date_to_post": {
                     "type": "string",
-                    "format": "date_time",
-                    "example": "2024-11-26T00:00:00Z"
+                    "format": "date_time"
                   },
-                  "team_member_id": {
-                    "type": "integer",
-                    "example": 1
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "nullable": true
                   }
                 },
                 "required": [
                   "title",
                   "description",
                   "tags",
-                  "programming_date_to_post",
-                  "team_member_id"
+                  "category",
+                  "emoji",
+                  "programming_date_to_post"
                 ]
               }
             }
@@ -439,7 +405,7 @@
         }
       ],
       "get": {
-        "summary": "Retrieves a specific post",
+        "summary": "Show a post",
         "tags": [
           "Posts"
         ],
@@ -450,7 +416,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Post retrieved successfully",
+            "description": "Post found",
             "content": {
               "application/json": {
                 "schema": {
@@ -460,34 +426,7 @@
                       "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "example": 1
-                        },
-                        "title": {
-                          "type": "string",
-                          "example": "Sample Post"
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "This is a sample post description"
-                        },
-                        "tags": {
-                          "type": "string",
-                          "example": "example,post"
-                        },
-                        "programming_date_to_post": {
-                          "type": "string",
-                          "format": "date_time",
-                          "example": "2024-11-26T00:00:00Z"
-                        },
-                        "team_member_id": {
-                          "type": "integer",
-                          "example": 1
-                        }
-                      }
+                      "type": "object"
                     }
                   },
                   "required": [
@@ -499,30 +438,15 @@
             }
           },
           "404": {
-            "description": "Post not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusError"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Post not found"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       },
       "put": {
-        "summary": "Updates a post",
+        "summary": "Update a post",
         "tags": [
           "Posts"
         ],
@@ -534,7 +458,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Post updated successfully",
+            "description": "Post updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -544,34 +468,7 @@
                       "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "post": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "example": 1
-                        },
-                        "title": {
-                          "type": "string",
-                          "example": "Updated Post"
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "This is an updated post description"
-                        },
-                        "tags": {
-                          "type": "string",
-                          "example": "updated,post"
-                        },
-                        "programming_date_to_post": {
-                          "type": "string",
-                          "format": "date_time",
-                          "example": "2024-11-26T00:00:00Z"
-                        },
-                        "team_member_id": {
-                          "type": "integer",
-                          "example": 1
-                        }
-                      }
+                      "type": "object"
                     }
                   },
                   "required": [
@@ -582,26 +479,11 @@
               }
             }
           },
+          "404": {
+            "description": "Post not found"
+          },
           "422": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusError"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Validation error"
           }
         },
         "requestBody": {
@@ -611,25 +493,30 @@
                 "type": "object",
                 "properties": {
                   "title": {
-                    "type": "string",
-                    "example": "Updated Post"
+                    "type": "string"
                   },
                   "description": {
-                    "type": "string",
-                    "example": "This is an updated post description"
+                    "type": "string"
                   },
                   "tags": {
-                    "type": "string",
-                    "example": "updated,post"
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
                   },
                   "programming_date_to_post": {
                     "type": "string",
-                    "format": "date_time",
-                    "example": "2024-11-26T00:00:00Z"
+                    "format": "date_time"
                   },
-                  "team_member_id": {
-                    "type": "integer",
-                    "example": 1
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "nullable": true
                   }
                 }
               }
@@ -638,7 +525,7 @@
         }
       },
       "delete": {
-        "summary": "Deletes a post",
+        "summary": "Delete a post",
         "tags": [
           "Posts"
         ],
@@ -649,7 +536,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Post deleted successfully",
+            "description": "Post deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -658,125 +545,21 @@
                     "status": {
                       "$ref": "#/components/schemas/StatusSuccess"
                     }
-                  }
+                  },
+                  "required": [
+                    "status"
+                  ]
                 }
               }
             }
           },
           "404": {
-            "description": "Post not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusError"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Post not found"
           }
         }
       }
     },
     "/api/v1/strategies": {
-      "post": {
-        "summary": "Creates a marketing strategy",
-        "tags": [
-          "Strategies"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Strategy created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "ok"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "ok"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "idProccess": {
-                          "type": "integer",
-                          "example": 1
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Missing required parameters",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "Missing parameters: from_schedule, to_schedule"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "from_schedule": {
-                    "type": "string",
-                    "format": "date_time",
-                    "example": "2025-03-01T10:00:00Z"
-                  },
-                  "to_schedule": {
-                    "type": "string",
-                    "format": "date_time",
-                    "example": "2025-03-10T18:00:00Z"
-                  },
-                  "description": {
-                    "type": "string",
-                    "example": "New campaign strategy for social media"
-                  }
-                },
-                "required": [
-                  "from_schedule",
-                  "to_schedule",
-                  "description"
-                ]
-              }
-            }
-          }
-        }
-      },
       "get": {
         "summary": "Lists strategies for the current user's team",
         "tags": [
@@ -893,6 +676,75 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Creates a marketing strategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Strategy created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "strategy"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing required parameters"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2025-01-01T09:00:00Z"
+                  },
+                  "to_schedule": {
+                    "type": "string",
+                    "format": "date_time",
+                    "example": "2025-01-31T18:00:00Z"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Q1 Social Media Campaign"
+                  }
+                },
+                "required": [
+                  "from_schedule",
+                  "to_schedule",
+                  "description"
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/strategies/{id}": {
@@ -1003,6 +855,165 @@
         }
       }
     },
+    "/api/v1/strategies/{strategy_id}/posts": {
+      "parameters": [
+        {
+          "name": "strategy_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List posts for a specific strategy",
+        "tags": [
+          "Strategy Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Posts listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "posts",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a post for a specific strategy",
+        "tags": [
+          "Strategy Posts"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Post created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "post": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "post"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
+                  },
+                  "programming_date_to_post": {
+                    "type": "string",
+                    "format": "date_time"
+                  },
+                  "is_published": {
+                    "type": "boolean"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "title",
+                  "description",
+                  "tags",
+                  "category",
+                  "emoji",
+                  "programming_date_to_post"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/strategy/create": {
       "post": {
         "summary": "Creates a new marketing strategy",
@@ -1098,6 +1109,372 @@
                 ]
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/templates": {
+      "get": {
+        "summary": "List templates for the current user",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "template_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "templates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "templates",
+                    "pagination"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a template",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Template created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "template": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "tags": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "title",
+                  "description",
+                  "category",
+                  "emoji"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Show a template",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "template": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a template",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Template updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "template": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "template"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "tags": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "emoji": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a template",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found"
+          }
+        }
+      }
+    },
+    "/api/v1/templates/categories": {
+      "get": {
+        "summary": "List template categories",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categories listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/StatusSuccess"
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "categories"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -1213,112 +1590,61 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "username": {
-                    "type": "string",
-                    "description": "The username of the user",
-                    "example": "test_user"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "The email address of the user",
-                    "example": "test_user@example.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "description": "The password of the user",
-                    "example": "password1234"
-                  },
-                  "role": {
-                    "type": "string",
-                    "enum": [
-                      "EMPLOYEE",
-                      "ADMIN",
-                      "CUSTOMER"
-                    ],
-                    "description": "The role of the user (e.g., EMPLOYEE, ADMIN, CUSTOMER)",
-                    "example": "EMPLOYEE"
+                  "user": {
+                    "type": "object",
+                    "properties": {
+                      "username": {
+                        "type": "string",
+                        "description": "The username of the user",
+                        "example": "test_user"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "The email address of the user",
+                        "example": "test_user@example.com"
+                      },
+                      "password": {
+                        "type": "string",
+                        "description": "The password of the user (min 6, max 128 characters)",
+                        "example": "Password1234",
+                        "minLength": 6,
+                        "maxLength": 128
+                      },
+                      "role": {
+                        "type": "string",
+                        "enum": [
+                          "EMPLOYEE",
+                          "ADMIN",
+                          "CUSTOMER"
+                        ],
+                        "description": "The role of the user (e.g., EMPLOYEE, ADMIN, CUSTOMER)",
+                        "example": "EMPLOYEE"
+                      },
+                      "company_code": {
+                        "type": "string",
+                        "description": "The code of the company",
+                        "example": "COMPANY123"
+                      },
+                      "team_code": {
+                        "type": "string",
+                        "description": "The code of the team",
+                        "example": "TEAM456"
+                      }
+                    },
+                    "required": [
+                      "username",
+                      "email",
+                      "password",
+                      "role",
+                      "company_code",
+                      "team_code"
+                    ]
                   }
                 },
                 "required": [
-                  "username",
-                  "email",
-                  "password",
-                  "role"
+                  "user"
                 ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/users/me": {
-      "get": {
-        "summary": "Retrieves the current user details",
-        "tags": [
-          "Users"
-        ],
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User details retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "example": 1
-                        },
-                        "username": {
-                          "type": "string",
-                          "example": "test_user"
-                        },
-                        "email": {
-                          "type": "string",
-                          "example": "test_user@example.com"
-                        },
-                        "role": {
-                          "type": "string",
-                          "example": "EMPLOYEE"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "username",
-                        "email",
-                        "role"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "user"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "Unauthorized"
-                    }
-                  }
-                }
               }
             }
           }
@@ -1327,7 +1653,7 @@
     },
     "/api/v1/users/login": {
       "post": {
-        "summary": "Signs in a user",
+        "summary": "User login (login)",
         "tags": [
           "Users"
         ],
@@ -1344,31 +1670,7 @@
                       "$ref": "#/components/schemas/StatusSuccess"
                     },
                     "user": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "integer",
-                          "example": 1
-                        },
-                        "username": {
-                          "type": "string",
-                          "example": "test_user"
-                        },
-                        "email": {
-                          "type": "string",
-                          "example": "test_user@example.com"
-                        },
-                        "role": {
-                          "type": "string",
-                          "example": "EMPLOYEE"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "username",
-                        "email",
-                        "role"
-                      ]
+                      "type": "object"
                     }
                   },
                   "required": [
@@ -1380,19 +1682,7 @@
             }
           },
           "401": {
-            "description": "Invalid credentials",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusUnauthorized"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Invalid credentials"
           }
         },
         "requestBody": {
@@ -1401,19 +1691,24 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "test_user@example.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "example": "password123"
+                  "user": {
+                    "type": "object",
+                    "properties": {
+                      "username": {
+                        "type": "string"
+                      },
+                      "password": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "username",
+                      "password"
+                    ]
                   }
                 },
                 "required": [
-                  "email",
-                  "password"
+                  "user"
                 ]
               }
             }
@@ -1421,9 +1716,9 @@
         }
       }
     },
-    "/api/v1/users/logout": {
+    "/api/v1/users/sign_out": {
       "delete": {
-        "summary": "Signs out a user",
+        "summary": "User logout (sign out)",
         "tags": [
           "Users"
         ],
@@ -1443,25 +1738,52 @@
                     "status": {
                       "$ref": "#/components/schemas/StatusSuccess"
                     }
-                  }
+                  },
+                  "required": [
+                    "status"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "$ref": "#/components/schemas/StatusUnauthorized"
+                    "user": {
+                      "type": "object"
                     }
-                  }
+                  },
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -1472,7 +1794,7 @@
       "url": "{defaultHost}",
       "variables": {
         "defaultHost": {
-          "default": "http://localhost:3000"
+          "default": "http://localhost:4000"
         }
       }
     }

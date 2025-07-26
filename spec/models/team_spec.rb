@@ -5,6 +5,7 @@
 # Table name: teams
 #
 #  id         :bigint           not null, primary key
+#  code       :string
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
@@ -12,6 +13,7 @@
 #
 # Indexes
 #
+#  index_teams_on_code        (code) UNIQUE
 #  index_teams_on_company_id  (company_id)
 #
 # Foreign Keys
@@ -20,7 +22,7 @@
 #
 require 'rails_helper'
 
-RSpec.describe Team, type: :model do
+RSpec.describe Team do
   let(:team) { create(:team) }
 
   it 'is valid with valid attributes' do
@@ -37,11 +39,11 @@ RSpec.describe Team, type: :model do
     create(:team, name: 'Duplicate Team')
     duplicate_team = build(:team, name: 'Duplicate Team')
     expect(duplicate_team).not_to be_valid
-    expect(duplicate_team.errors[:name]).to include("has already been taken")
+    expect(duplicate_team.errors[:name]).to include('has already been taken')
   end
 
   describe 'associations' do
-    it { should have_many(:team_members) }
+    it { is_expected.to have_many(:team_members) }
   end
 
   describe '#fields' do

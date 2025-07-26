@@ -26,7 +26,7 @@ module Api
             return unless post_record
 
             strategy = post_record.strategy # Define strategy for use throughout
-            strategy.update!(status: :in_progress_posting)
+            strategy.update!(status: :pending)
 
             company = post_record.team&.company
             unless company
@@ -60,7 +60,8 @@ module Api
             Rails.logger.error "Twitter post failed: #{e.message} - Post id #{post_id}"
           end
 
-          def self.publish_tweet(post, client, strategy) # Added client and strategy as params
+          # Added client and strategy as params
+          def self.publish_tweet(post, client, strategy)
             Tempfile.create(['media', '.jpg']) do |tempfile|
               tempfile.binmode
               tempfile.write URI.open(post.image_url).read
@@ -82,7 +83,7 @@ module Api
             strategy.update!(status: :failed) # Use passed strategy
             Rails.logger.error "Failed to download the image: #{e.message}"
           rescue X::Error => e
-            strategy.update!(status: :failed_social_network) # Use passed strategy
+            strategy.update!(status: :failed) # Use passed strategy
             Rails.logger.error "X API Error: #{e.message}"
           rescue StandardError => e
             strategy.update!(status: :failed_system) # Use passed strategy

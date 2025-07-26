@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_13_025931) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "hstore"
   enable_extension "plpgsql"
@@ -19,6 +19,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "code"
+    t.index ["code"], name: "index_companies_on_code", unique: true
   end
 
   create_table "credentials_twitters", force: :cascade do |t|
@@ -51,6 +53,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "strategy_id"
+    t.string "category"
+    t.string "emoji"
+    t.integer "status"
     t.index ["strategy_id"], name: "index_posts_on_strategy_id"
     t.index ["team_member_id"], name: "index_posts_on_team_member_id"
   end
@@ -94,7 +99,28 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
     t.bigint "company_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "code"
+    t.index ["code"], name: "index_teams_on_code", unique: true
     t.index ["company_id"], name: "index_teams_on_company_id"
+  end
+
+  create_table "templates", force: :cascade do |t|
+    t.string "title", null: false
+    t.string "description", limit: 500
+    t.string "image_url"
+    t.string "tags", limit: 255
+    t.string "category", null: false
+    t.string "emoji", null: false
+    t.bigint "company_id", null: false
+    t.bigint "team_id"
+    t.boolean "is_default", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_templates_on_category"
+    t.index ["company_id"], name: "index_templates_on_company_id"
+    t.index ["is_default"], name: "index_templates_on_is_default"
+    t.index ["team_id"], name: "index_templates_on_team_id"
+    t.index ["title", "company_id"], name: "index_templates_on_title_and_company_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -107,9 +133,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
     t.datetime "updated_at", null: false
     t.string "username"
     t.string "role"
-    t.bigint "company_id", null: false
     t.boolean "did_tutorial", default: false, null: false
-    t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -129,5 +153,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_18_211115) do
   add_foreign_key "strategies", "team_members"
   add_foreign_key "team_members", "teams"
   add_foreign_key "teams", "companies"
-  add_foreign_key "users", "companies"
+  add_foreign_key "templates", "companies"
+  add_foreign_key "templates", "teams"
 end

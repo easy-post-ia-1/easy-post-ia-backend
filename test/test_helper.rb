@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
-require_relative "../config/environment" # Loads Rails application
+ENV['RAILS_ENV'] ||= 'test'
+require_relative '../config/environment' # Loads Rails application
 
 # ---- BEGIN MANUAL ActiveRecord::Encryption CONFIG ----
 # Attempt to load and configure ActiveRecord::Encryption directly
 # This is to ensure it's set before models are loaded or tests run.
 begin
-  puts "Attempting to directly configure ActiveRecord::Encryption in test_helper.rb..."
+  puts 'Attempting to directly configure ActiveRecord::Encryption in test_helper.rb...'
   key_path = Rails.root.join('config/credentials/test.key')
   content_path = Rails.root.join('config/credentials/test.yml.enc')
 
   if File.exist?(key_path) && File.exist?(content_path)
-    master_key = File.read(key_path).strip
+    File.read(key_path).strip
 
     config_file = ActiveSupport::EncryptedFile.new(
       content_path: content_path,
@@ -26,7 +26,7 @@ begin
     ar_encrypt_creds = credentials['active_record_encryption']
 
     if ar_encrypt_creds && ar_encrypt_creds['primary_key']
-      puts "Found primary_key. Configuring ActiveRecord::Encryption directly."
+      puts 'Found primary_key. Configuring ActiveRecord::Encryption directly.'
 
       # Use values from credentials or generate new ones if missing
       # Ensure keys are in binary format if OpenSSL::Random.random_bytes is used,
@@ -45,19 +45,19 @@ begin
         deterministic_key: deterministic_h_key,
         key_derivation_salt: key_derivation_s
       )
-      puts "ActiveRecord::Encryption.config.primary_key set directly."
+      puts 'ActiveRecord::Encryption.config.primary_key set directly.'
     else
-      puts "active_record_encryption.primary_key NOT found in decrypted test credentials for direct config."
+      puts 'active_record_encryption.primary_key NOT found in decrypted test credentials for direct config.'
     end
   else
-    puts "test.key or test.yml.enc NOT found for direct config in test_helper.rb."
+    puts 'test.key or test.yml.enc NOT found for direct config in test_helper.rb.'
   end
 rescue StandardError => e
   puts "Error during direct ActiveRecord::Encryption config in test_helper.rb: #{e.class} - #{e.message}"
 end
 # ---- END MANUAL ActiveRecord::Encryption CONFIG ----
 
-require "rails/test_help"
+require 'rails/test_help'
 
 module ActiveSupport
   class TestCase

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: strategies
@@ -30,4 +32,4 @@ class StrategySerializer < ActiveModel::Serializer
   def post_ids
     object.posts.pluck(:id)
   end
-end 
+end

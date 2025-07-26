@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'swagger_helper' # or 'rails_helper'
 
-RSpec.describe 'Api::V1::StrategiesController', type: :request do
+RSpec.describe 'Api::V1::StrategiesController' do
   include ApiHelpers # Make JWT helper available
 
   path '/api/v1/strategies' do
@@ -41,7 +43,7 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
                  },
                  pagination: { '$ref' => '#/components/schemas/Pagination' }
                },
-               required: ['status', 'strategies', 'pagination']
+               required: %w[status strategies pagination]
 
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         run_test!
@@ -91,7 +93,7 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
                    }
                  }
                },
-               required: ['status', 'strategy']
+               required: %w[status strategy]
 
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:id) { create(:strategy).id }
@@ -125,7 +127,7 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
           to_schedule: { type: :string, format: :date_time, example: '2024-03-31T23:59:59Z' },
           description: { type: :string, example: 'Marketing Strategy Q1' }
         },
-        required: ['from_schedule', 'to_schedule', 'description']
+        required: %w[from_schedule to_schedule description]
       }
 
       response '201', 'Strategy created successfully' do
@@ -140,7 +142,7 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
                    }
                  }
                },
-               required: ['status', 'strategy']
+               required: %w[status strategy]
 
         let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
         let(:strategy) do
@@ -172,16 +174,20 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
   let!(:team) { create(:team, company: company) }
   let!(:team_member) { create(:team_member, user: user, team: team) }
 
-  let!(:other_user) { create(:user, username: "otheruser_#{SecureRandom.hex(4)}", email: "otheruser_#{SecureRandom.hex(4)}@example.com") }
-  let!(:other_company) { create(:company, name: "OtherCo") }
+  let!(:other_user) do
+    create(:user, username: "otheruser_#{SecureRandom.hex(4)}", email: "otheruser_#{SecureRandom.hex(4)}@example.com")
+  end
+  let!(:other_company) { create(:company, name: 'OtherCo') }
   let!(:other_team) { create(:team, company: other_company, name: 'OtherTeam') }
   let!(:other_team_member) { create(:team_member, user: other_user, team: other_team) }
-
 
   describe 'GET /api/v1/strategies' do
     context 'when authenticated' do
       context 'and user is associated with a team' do
         let!(:post1_team1) { create(:post, team_member: team_member) }
+        # Create a strategy for another team (should not be returned)
+        let!(:post_other_team) { create(:post, team_member: other_team_member) }
+        let!(:strategy_other_team) { create(:strategy, posts: [post_other_team], description: 'Strategy Other Team') }
         let!(:post2_team1) { create(:post, team_member: team_member) }
         # Ensure strategy factory can handle posts association or posts are added after creation
         let!(:strategy1_team1) { create(:strategy, description: 'Strategy 1 Team 1') }
@@ -193,20 +199,17 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
           strategy2_team1.posts << post2_team1
         end
 
-        # Create a strategy for another team (should not be returned)
-        let!(:post_other_team) { create(:post, team_member: other_team_member) }
-        let!(:strategy_other_team) { create(:strategy, posts: [post_other_team], description: 'Strategy Other Team') }
-
-
         it 'returns status 200 and strategies for the user\'s team with correct data' do
           get '/api/v1/strategies', headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
 
           expect(response).to have_http_status(:ok)
-          json_response = JSON.parse(response.body)
+          json_response = response.parsed_body
 
           expect(json_response['status']['code']).to eq(200)
           expect(json_response['strategies'].size).to eq(2)
-          expect(json_response['strategies'].map{ |s| s['description'] }).to match_array(['Strategy 1 Team 1', 'Strategy 2 Team 1'])
+          expect(json_response['strategies'].map do |s|
+            s['description']
+          end).to contain_exactly('Strategy 1 Team 1', 'Strategy 2 Team 1')
 
           # Check structure of one strategy
           # Find strategy1_team1 in the response (order might vary)
@@ -220,8 +223,12 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
           expect(returned_strategy1['status_display']['name']).to be_present
           expect(returned_strategy1['status_display']['color']).to be_present
           # Compare Time objects to handle minor ISO 8601 formatting differences (Z vs +00:00)
-          expect(Time.parse(returned_strategy1['from_schedule'])).to be_within(1.second).of(strategy1_team1.from_schedule) if strategy1_team1.from_schedule && returned_strategy1['from_schedule']
-          expect(Time.parse(returned_strategy1['to_schedule'])).to be_within(1.second).of(strategy1_team1.to_schedule) if strategy1_team1.to_schedule && returned_strategy1['to_schedule']
+          if strategy1_team1.from_schedule && returned_strategy1['from_schedule']
+            expect(Time.zone.parse(returned_strategy1['from_schedule'])).to be_within(1.second).of(strategy1_team1.from_schedule)
+          end
+          if strategy1_team1.to_schedule && returned_strategy1['to_schedule']
+            expect(Time.zone.parse(returned_strategy1['to_schedule'])).to be_within(1.second).of(strategy1_team1.to_schedule)
+          end
           expect(returned_strategy1['post_ids']).to include(post1_team1.id)
 
           # Check pagination structure
@@ -233,20 +240,22 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
           # Create more strategies for pagination test (e.g., 12 total for page_size 10)
           # The two existing strategies (strategy1_team1, strategy2_team1) are already associated with user's team.
           10.times do |i|
-             p = create(:post, team_member: team_member) # Post associated with the correct team_member
-             create(:strategy, posts: [p], description: "Paginated Strategy #{i}")
+            p = create(:post, team_member: team_member) # Post associated with the correct team_member
+            create(:strategy, posts: [p], description: "Paginated Strategy #{i}")
           end
 
-          get '/api/v1/strategies', params: { page: 1, page_size: 5 }, headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
-          json_response_page1 = JSON.parse(response.body)
+          get '/api/v1/strategies', params: { page: 1, page_size: 5 },
+                                    headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
+          json_response_page1 = response.parsed_body
           expect(response).to have_http_status(:ok)
           expect(json_response_page1['strategies'].size).to eq(5)
           expect(json_response_page1['pagination']['page']).to eq(1)
           expect(json_response_page1['pagination']['per_page']).to eq(5)
           expect(json_response_page1['pagination']['count']).to eq(12) # 2 original + 10 new
 
-          get '/api/v1/strategies', params: { page: 3, page_size: 5 }, headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
-          json_response_page3 = JSON.parse(response.body)
+          get '/api/v1/strategies', params: { page: 3, page_size: 5 },
+                                    headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
+          json_response_page3 = response.parsed_body
           expect(response).to have_http_status(:ok)
           expect(json_response_page3['strategies'].size).to eq(2) # Remaining 2
           expect(json_response_page3['pagination']['page']).to eq(3)
@@ -258,7 +267,7 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
           # In this context, no strategies are explicitly created for 'user' or their team.
           get '/api/v1/strategies', headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user)}" }
           expect(response).to have_http_status(:ok)
-          json_response = JSON.parse(response.body)
+          json_response = response.parsed_body
           expect(json_response['status']['code']).to eq(200)
           expect(json_response['strategies']).to be_empty
           expect(json_response['pagination']['count']).to eq(0)
@@ -266,15 +275,20 @@ RSpec.describe 'Api::V1::StrategiesController', type: :request do
       end
 
       context 'and user is not associated with a team' do
-        let(:user_no_team) { create(:user, username: "user_no_team_#{SecureRandom.hex(4)}", email: "user_no_team_#{SecureRandom.hex(4)}@example.com") }
+        let(:user_no_team) do
+          create(:user, username: "user_no_team_#{SecureRandom.hex(4)}",
+                        email: "user_no_team_#{SecureRandom.hex(4)}@example.com")
+        end
+
         before do
           user_no_team.team_member&.destroy # Ensure no team association
         end
 
         it 'returns status 422 (unprocessable_entity)' do
-          get '/api/v1/strategies', headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user_no_team)}" }
+          get '/api/v1/strategies',
+              headers: { 'Authorization' => "Bearer #{generate_jwt_token_for_user(user_no_team)}" }
           expect(response).to have_http_status(:unprocessable_entity)
-          json_response = JSON.parse(response.body)
+          json_response = response.parsed_body
           expect(json_response['status']['code']).to eq(422)
           expect(json_response['errors']).to include('User is not associated with a team.')
         end

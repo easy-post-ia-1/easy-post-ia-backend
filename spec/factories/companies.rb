@@ -5,9 +5,14 @@
 # Table name: companies
 #
 #  id         :bigint           not null, primary key
+#  code       :string
 #  name       :string
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#
+# Indexes
+#
+#  index_companies_on_code  (code) UNIQUE
 #
 FactoryBot.define do
   factory :company do

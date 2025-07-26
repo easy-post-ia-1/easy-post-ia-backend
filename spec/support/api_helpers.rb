@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'jwt'
 
 module ApiHelpers
@@ -7,7 +9,7 @@ module ApiHelpers
       scp: 'user', # Scope, ensure this matches your Devise setup if applicable
       aud: nil,    # Audience, ensure this matches
       iat: Time.now.to_i,
-      exp: (Time.now + 1.hour).to_i, # Token expiration time
+      exp: 1.hour.from_now.to_i, # Token expiration time
       jti: SecureRandom.uuid
     }
     # Ensure Rails.application.credentials.devise_jwt_secret_key! is valid and loaded
@@ -18,14 +20,14 @@ module ApiHelpers
       # Fallback for environments where Rails credentials might not be fully loaded in tests
       # or if you are using a different way to store this specific key for tests.
       # This is a common pattern if ENV vars are used in config/initializers/devise.rb
-      secret_key = ENV['DEVISE_JWT_SECRET_KEY']
+      secret_key = ENV.fetch('DEVISE_JWT_SECRET_KEY', nil)
       if secret_key.blank? && Rails.env.test?
         # Provide a default dummy key for tests if none is found, but log a warning.
         # This ensures tests can run but highlights a potential configuration gap.
-        Rails.logger.warn "DEVISE_JWT_SECRET_KEY not found in Rails credentials or ENV for test. Using a default dummy key. Ensure this is configured for real authentication."
+        Rails.logger.warn 'DEVISE_JWT_SECRET_KEY not found in Rails credentials or ENV for test. Using a default dummy key. Ensure this is configured for real authentication.'
         secret_key = 'dummy_test_secret_key_min_32_chars_long_for_hs256'
       elsif secret_key.blank?
-        raise "DEVISE_JWT_SECRET_KEY is missing. Cannot generate JWT."
+        raise 'DEVISE_JWT_SECRET_KEY is missing. Cannot generate JWT.'
       end
     end
     JWT.encode(payload, secret_key, 'HS256')

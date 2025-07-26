@@ -28,7 +28,7 @@ RSpec.configure do |config|
           url: '{defaultHost}',
           variables: {
             defaultHost: {
-              default: "http://localhost:#{ENV.fetch('PORT', 3000)}"
+              default: "http://localhost:#{ENV.fetch('API_PORT', 4000)}"
             }
           }
         }
@@ -48,18 +48,18 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               code: { type: :integer, example: 200 },
-              message: { type: :string, example: "Success" }
+              message: { type: :string, example: 'Success' }
             },
-            required: ['code', 'message']
+            required: %w[code message]
           },
           StatusUnauthorized: { # Defines the structure of the 'status' object for unauthorized
             type: :object,
             properties: {
               code: { type: :integer, example: 401 },
-              message: { type: :string, example: "Unauthorized" }
+              message: { type: :string, example: 'Unauthorized' }
             },
-            required: ['code', 'message']
-            # Note: The main response schema using this might add an 'errors' array separately
+            required: %w[code message]
+            # NOTE: The main response schema using this might add an 'errors' array separately
             # if the controller for 401 sometimes returns errors (e.g. Devise does for failed login attempts)
             # For a simple "token missing/invalid" 401, often no error body beyond status.
           },
@@ -67,9 +67,9 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               code: { type: :integer, example: 404 }, # Standard HTTP Not Found
-              message: { type: :string, example: "Resource not found" }
+              message: { type: :string, example: 'Resource not found' }
             },
-            required: ['code', 'message']
+            required: %w[code message]
             # The main response schema using this will add the 'errors' array:
             # properties: {
             #   status: { '$ref': '#/components/schemas/StatusNotFound' },
@@ -80,9 +80,9 @@ RSpec.configure do |config|
             type: :object,
             properties: {
               code: { type: :integer, example: 422 }, # Example: Unprocessable Entity
-              message: { type: :string, example: "Error" } # Or specific error message
+              message: { type: :string, example: 'Error' } # Or specific error message
             },
-            required: ['code', 'message']
+            required: %w[code message]
             # The main response schema using this will add the 'errors' array:
             # properties: {
             #   status: { '$ref': '#/components/schemas/StatusError' },
@@ -97,7 +97,7 @@ RSpec.configure do |config|
               pages: { type: :integer, example: 5, description: 'Total number of pages' },
               count: { type: :integer, example: 42, description: 'Total number of items' }
             },
-            required: ['page', 'per_page', 'pages', 'count']
+            required: %w[page per_page pages count]
           }
         }
       }

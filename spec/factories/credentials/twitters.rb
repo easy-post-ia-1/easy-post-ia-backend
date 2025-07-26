@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == Schema Information
 #
 # Table name: credentials_twitters
@@ -21,15 +23,15 @@
 #
 FactoryBot.define do
   factory :credentials_twitter, class: 'Credentials::Twitter' do
-    api_key { "MyText" }
-    api_key_secret { "MyText" }
-    access_token { "MyText" }
-    access_token_secret { "MyText" }
+    api_key { 'MyText' }
+    api_key_secret { 'MyText' }
+    access_token { 'MyText' }
+    access_token_secret { 'MyText' }
     company { nil }
   end
 
   factory :twitter_credential, class: 'Credentials::Twitter' do
-    association :company
+    company
     # Add required attributes here, e.g. token { 'fake-token' }
   end
 end

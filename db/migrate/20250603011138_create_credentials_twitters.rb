@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateCredentialsTwitters < ActiveRecord::Migration[7.2]
   def change
     create_table :credentials_twitters do |t|

@@ -1,6 +1,10 @@
+
 ---
-description: 
-globs: 
+description: Reglas de codificación para backend Rails
+globs:
+  - app/**
+  - spec/**
+  - config/**
 alwaysApply: true
 ---
 
@@ -64,6 +68,11 @@ alwaysApply: true
   
 Follow the official Ruby on Rails guides for best practices in routing, controllers, models, views, and other Rails components.
   
+
+- Each time you detect create, update, delete endpoint in a file, you must create, update or delete test in the folder spec in controllers and requests and ask for confirmation.
+
+- If you create, update, delete model, you must create, update or delete test.
+
 
 - Each time you detect create, update, delete endpoint in a file, you must create, update or delete test in the folder spec in controllers and requests and ask for confirmation.
 

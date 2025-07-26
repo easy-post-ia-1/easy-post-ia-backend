@@ -27,7 +27,7 @@ module Api
             res = generate_text(prompt)
 
             post_ids = []
-            return { status: :failed, posts: post_ids, error: 'Post dont generated', res: } unless res[:posts]&.present?
+            return { status: :failed, posts: post_ids, error: 'Post dont generated', res: } if res[:posts].blank?
 
             strategy = Strategy.find(options[:strategy_id])
             team_member = User.find(options[:creator_id]).team_member
@@ -37,6 +37,8 @@ module Api
                 description: post_data['description'],
                 programming_date_to_post: post_data['programming_date_to_post'],
                 tags: post_data['tags'].join(', '),
+                category: post_data['category'] || 'Marketing',
+                emoji: post_data['emoji'] || '🚀',
                 team_member: team_member,
                 strategy: strategy
               )
@@ -90,7 +92,7 @@ module Api
             { error: e.message }
           end
 
-          def self.generate_text(prompt, _options = {})
+          def self.generate_text(_prompt, _options = {})
             # body = { prompt: prompt, temperature: 0.7, top_p: 1 }
             # response = bedrock_client.invoke_model(
             #   model_id: 'meta.llama3-70b-instruct-v1:0',
@@ -117,6 +119,8 @@ module Api
                'image_prompt' =>
     'A graphic with a rocket ship blasting off, surrounded by business-related icons.',
                'tags' => ['#marketing', '#business', '#growth'],
+               'category' => 'Marketing',
+               'emoji' => '🚀',
                'programming_date_to_post' => '2025-03-11T10:00:00+00:00' },
              { 'title' => 'Spring into Action!',
                'description' =>
@@ -124,6 +128,8 @@ module Api
                'image_prompt' =>
                'A spring-themed graphic with a calendar, flowers, and a briefcase.',
                'tags' => ['#spring', '#marketing', '#newbeginnings'],
+               'category' => 'News',
+               'emoji' => '📰',
                'programming_date_to_post' => '2025-03-18T14:00:00+00:00' }]
           end
         end

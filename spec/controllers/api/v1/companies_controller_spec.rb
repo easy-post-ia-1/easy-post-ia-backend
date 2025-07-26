@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 RSpec.describe Api::V1::CompaniesController do
@@ -26,7 +28,7 @@ RSpec.describe Api::V1::CompaniesController do
       it 'returns a successful response with social network status' do
         get :social_network_status
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['social_networks']).to include('twitter')
         expect(json_response['social_networks']['twitter']).to include('has_credentials')
@@ -51,7 +53,7 @@ RSpec.describe Api::V1::CompaniesController do
       it 'returns a not found response' do
         get :social_network_status
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('User is not associated with a company.')
       end
@@ -68,7 +70,7 @@ RSpec.describe Api::V1::CompaniesController do
       it 'returns a successful response' do
         get :show, params: { id: company.id }
         expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(200)
         expect(json_response['company']['id']).to eq(company.id)
         expect(json_response['company']['name']).to eq(company.name)
@@ -84,7 +86,7 @@ RSpec.describe Api::V1::CompaniesController do
       it 'returns a not found response' do
         get :show, params: { id: 9999 }
         expect(response).to have_http_status(:not_found)
-        json_response = JSON.parse(response.body)
+        json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
         expect(json_response['errors']).to include('Company not found.')
       end
@@ -97,4 +99,4 @@ RSpec.describe Api::V1::CompaniesController do
       end
     end
   end
-end 
+end
