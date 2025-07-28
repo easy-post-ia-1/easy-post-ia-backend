@@ -23,26 +23,30 @@ RSpec.describe Company do
     expect(company).to be_valid
   end
 
-  it 'is not valid without a name' do
-    company.name = nil
+  it 'is not valid without a code' do
+    company.code = nil
     expect(company).not_to be_valid
-    expect(company.errors[:name]).to include("can't be blank")
+    expect(company.errors[:code]).to include("can't be blank")
   end
 
-  it 'is not valid with a duplicate name' do
-    create(:company, name: 'Duplicate Company')
-    duplicate_company = build(:company, name: 'Duplicate Company')
+  it 'is not valid with a duplicate code' do
+    create(:company, code: 'DUPLICATE')
+    duplicate_company = build(:company, code: 'DUPLICATE')
     expect(duplicate_company).not_to be_valid
-    expect(duplicate_company.errors[:name]).to include('has already been taken')
+    expect(duplicate_company.errors[:code]).to include('has already been taken')
   end
 
   describe 'associations' do
-    it { is_expected.to have_many(:company_members) }
+    it { is_expected.to have_many(:teams) }
+    it { is_expected.to have_many(:team_members) }
+    it { is_expected.to have_many(:posts) }
     it { is_expected.to have_many(:strategies) }
-    it { is_expected.to have_one(:twitter_credential) }
+    it { is_expected.to have_many(:templates) }
+    it { is_expected.to have_one(:credentials_twitter) }
   end
 
   describe '#fields' do
     it { is_expected.to have_db_column(:name).of_type(:string) }
+    it { is_expected.to have_db_column(:code).of_type(:string) }
   end
 end

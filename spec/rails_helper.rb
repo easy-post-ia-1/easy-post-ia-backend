@@ -50,7 +50,6 @@ require 'devise'
 require 'database_cleaner/active_record'
 require 'simplecov'
 
-SimpleCov.start
 SimpleCov.start do
   add_filter %w[
     app/views
@@ -74,6 +73,8 @@ SimpleCov.start do
   add_group 'Models', 'app/models'
   add_group 'Controllers', 'app/controllers'
   add_group 'Sidekiq', 'app/sidekiq'
+  add_group 'Helpers', 'app/helpers'
+  add_group 'Jobs', 'app/jobs'
 
   add_filter do |source_file|
     source_file.filename.include?('app/') && source_file.filename.exclude?('app/sidekiq')

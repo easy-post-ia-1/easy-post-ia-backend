@@ -23,15 +23,18 @@
 #
 FactoryBot.define do
   factory :credentials_twitter, class: 'Credentials::Twitter' do
-    api_key { 'MyText' }
-    api_key_secret { 'MyText' }
-    access_token { 'MyText' }
-    access_token_secret { 'MyText' }
-    company { nil }
+    api_key { 'test_api_key' }
+    api_key_secret { 'test_api_secret' }
+    access_token { 'test_access_token' }
+    access_token_secret { 'test_access_secret' }
+    company
   end
 
   factory :twitter_credential, class: 'Credentials::Twitter' do
     company
-    # Add required attributes here, e.g. token { 'fake-token' }
+    api_key { 'test_api_key' }
+    api_key_secret { 'test_api_secret' }
+    access_token { 'test_access_token' }
+    access_token_secret { 'test_access_secret' }
   end
 end

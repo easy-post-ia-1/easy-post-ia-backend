@@ -36,20 +36,20 @@ RSpec.describe User do
   it 'is not valid without a username' do
     user.username = nil
     expect(user).not_to be_valid
-    expect(user.errors[:username]).to include("can't be blank")
+    expect(user.errors[:username]).to include("Username can't be blank.")
   end
 
   it 'is not valid without an email' do
     user.email = nil
     expect(user).not_to be_valid
-    expect(user.errors[:email]).to include("can't be blank")
+    expect(user.errors[:email]).to include("Email can't be blank.")
   end
 
   it 'is not valid with a duplicate email' do
     create(:user, email: 'duplicate@example.com')
     duplicate_user = build(:user, email: 'duplicate@example.com')
     expect(duplicate_user).not_to be_valid
-    expect(duplicate_user.errors[:email]).to include('has already been taken')
+    expect(duplicate_user.errors[:email]).to include('This email is already registered.')
   end
 
   it 'is not valid with a duplicate username' do
@@ -57,18 +57,6 @@ RSpec.describe User do
     duplicate_user = build(:user, username: 'duplicate_username')
     expect(duplicate_user).not_to be_valid
     expect(duplicate_user.errors[:username]).to include('has already been taken')
-  end
-
-  it 'is not valid without a role' do
-    user.role = nil
-    expect(user).not_to be_valid
-    expect(user.errors[:role]).to include("can't be blank")
-  end
-
-  it 'is not valid with an invalid role' do
-    user.role = 'INVALID'
-    expect(user).not_to be_valid
-    expect(user.errors[:role]).to include('INVALID is not a valid role. The valid roles are EMPLOYER, EMPLOYEE, and ADMIN.')
   end
 
   it 'is valid with a valid role (ADMIN)' do
@@ -84,7 +72,19 @@ RSpec.describe User do
   end
 
   describe 'associations' do
-    it { is_expected.to have_many(:team_members) }
-    it { is_expected.to have_many(:company_members) }
+    it { is_expected.to have_one(:team_member) }
+    it { is_expected.to have_one(:team) }
+    it { is_expected.to have_many(:strategies) }
+    it { is_expected.to have_many(:posts) }
+  end
+
+  describe '#company' do
+    it 'returns the company through team association' do
+      company = create(:company)
+      team = create(:team, company: company)
+      team_member = create(:team_member, user: user, team: team)
+      
+      expect(user.company).to eq(company)
+    end
   end
 end

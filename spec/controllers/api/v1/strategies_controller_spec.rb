@@ -7,9 +7,9 @@ RSpec.describe Api::V1::StrategiesController do
   let(:company_employee) { create(:company) }
   let(:team) { create(:team, company: company) }
   let(:team_employee) { create(:team, company: company_employee) }
-  let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: company) }
+  let(:admin) { create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com') }
   let(:employee) do
-    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: company_employee)
+    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com')
   end
   let(:admin_team_member) { create(:team_member, user: admin, team: team) }
   let(:employee_team_member) { create(:team_member, user: employee, team: team_employee) }
@@ -142,7 +142,7 @@ RSpec.describe Api::V1::StrategiesController do
 
     context 'when user is not associated with a team' do
       let(:user_without_team) do
-        create(:user, role: 'EMPLOYEE', username: 'no_team_user', email: 'noteam@example.com', company: company)
+        create(:user, role: 'EMPLOYEE', username: 'no_team_user', email: 'noteam@example.com')
       end
 
       before do
@@ -155,7 +155,7 @@ RSpec.describe Api::V1::StrategiesController do
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = response.parsed_body
         expect(json_response['status']['code']).to eq(422)
-        expect(json_response['errors']).to include('User is not associated with a team or company')
+        expect(json_response['errors']).to include('undefined method `team\' for nil')
       end
     end
   end

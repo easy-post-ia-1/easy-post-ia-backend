@@ -56,6 +56,8 @@ RSpec.describe Post do
   describe '#validations' do
     it { is_expected.to validate_presence_of(:title) }
     it { is_expected.to validate_presence_of(:programming_date_to_post) }
+    it { is_expected.to validate_presence_of(:category) }
+    it { is_expected.to validate_presence_of(:emoji) }
   end
 
   describe '.programming_date_to_cron' do
@@ -79,10 +81,16 @@ RSpec.describe Post do
     expect(post.errors[:title]).to include("can't be blank")
   end
 
-  it 'is not valid without a description' do
-    post.description = nil
+  it 'is not valid without a category' do
+    post.category = nil
     expect(post).not_to be_valid
-    expect(post.errors[:description]).to include("can't be blank")
+    expect(post.errors[:category]).to include("can't be blank")
+  end
+
+  it 'is not valid without an emoji' do
+    post.emoji = nil
+    expect(post).not_to be_valid
+    expect(post.errors[:emoji]).to include("can't be blank")
   end
 
   it 'is not valid without programming_date_to_post' do
@@ -97,14 +105,13 @@ RSpec.describe Post do
     expect(post.errors[:team_member]).to include('must exist')
   end
 
-  it 'is not valid without a strategy' do
+  it 'is valid without a strategy' do
     post.strategy = nil
-    expect(post).not_to be_valid
-    expect(post.errors[:strategy]).to include('must exist')
+    expect(post).to be_valid
   end
 
   describe 'associations' do
     it { is_expected.to belong_to(:team_member) }
-    it { is_expected.to belong_to(:strategy) }
+    it { is_expected.to belong_to(:strategy).optional }
   end
 end

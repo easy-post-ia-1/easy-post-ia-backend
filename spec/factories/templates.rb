@@ -32,14 +32,25 @@
 #
 FactoryBot.define do
   factory :template do
-    title { 'MyString' }
-    description { 'MyString' }
-    image_url { 'MyString' }
-    tags { 'MyString' }
-    category { 'MyString' }
-    emoji { 'MyString' }
-    company { nil }
+    sequence(:title) { |n| "Template #{n}" }
+    description { 'A sample template description' }
+    image_url { 'https://example.com/image.jpg' }
+    tags { 'sample, template' }
+    category { 'marketing' }
+    emoji { '📝' }
+    company
     team { nil }
     is_default { false }
+
+    trait :default do
+      is_default { true }
+      team { nil }
+    end
+
+    trait :team_specific do
+      is_default { false }
+      team
+    end
   end
 end
+

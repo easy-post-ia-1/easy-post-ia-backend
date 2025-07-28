@@ -3,7 +3,10 @@
 require 'jwt'
 
 module ApiHelpers
-  def generate_jwt_token_for_user(user)
+  def generate_jwt_token_for_user(user = nil)
+    # If no user is provided, create a default user for testing
+    user ||= create(:user)
+    
     payload = {
       sub: user.id,
       scp: 'user', # Scope, ensure this matches your Devise setup if applicable

@@ -17,6 +17,7 @@
 FactoryBot.define do
   factory :company do
     name { Faker::Company.name }
+    code { Faker::Alphanumeric.alphanumeric(number: 8).upcase }
 
     trait :with_twitter_credentials do
       after(:create) do |company|
