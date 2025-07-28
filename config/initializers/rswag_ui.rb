@@ -10,6 +10,14 @@ Rswag::Ui.configure do |c|
   # correspond to the relative paths for those endpoints.
 
   c.swagger_endpoint '/api/v1/docs/swagger.json', 'API V1 Docs'
+  
+  # Configure for test environment
+  if Rails.env.test?
+    c.swagger_filter = lambda { |swagger, env| 
+      swagger['host'] = 'www.example.com'
+      swagger
+    }
+  end
 
   # Add Basic Auth in case your API is private
   # c.basic_auth_enabled = true

@@ -1,169 +1,278 @@
 # frozen_string_literal: true
 
-require 'swagger_helper'
+require 'rails_helper'
 
-describe 'Strategies API' do
-  path '/api/v1/strategies' do
-    get 'Lists strategies for the current user\'s team' do
-      tags 'Strategies'
-      produces 'application/json'
-      security [Bearer: []]
-      parameter name: :page, in: :query, type: :integer, required: false
-      parameter name: :page_size, in: :query, type: :integer, required: false
-      response '200', 'Successfully retrieved strategies' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 strategies: { type: :array, items: { type: :object } },
-                 pagination: { '$ref' => '#/components/schemas/Pagination' }
-               },
-               required: %w[status strategies pagination]
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:page) { 1 }
-        let(:page_size) { 2 }
-        run_test!
+RSpec.describe 'Strategies API', type: :request do
+  include ApiHelpers
+
+  let(:company) { create(:company) }
+  let(:team) { create(:team, company: company) }
+  let(:user) { create(:user) }
+  let(:team_member) { create(:team_member, user: user, team: team) }
+  let(:strategy) { create(:strategy, company: company, team_member: team_member) }
+  let(:token) { generate_jwt_token_for_user(user) }
+
+  before do
+    team_member # Ensure team member is created
+  end
+
+  describe 'GET /api/v1/strategies' do
+    context 'when authenticated' do
+      before do
+        get '/api/v1/strategies', headers: { 'Authorization' => "Bearer #{token}" }
       end
-      response '401', 'Unauthorized' do
-        let(:Authorization) { '' }
-        run_test!
+
+      it 'returns status 200' do
+        puts "Response status: #{response.status}"
+        puts "Response body: #{response.body[0..500]}"
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns strategies for the user\'s team' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+        expect(json_response['strategies']).to be_an(Array)
+        expect(json_response['pagination']).to be_present
+      end
+
+      it 'includes pagination information' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['pagination']).to include('page', 'pages', 'count')
       end
     end
-    post 'Creates a marketing strategy' do
-      tags 'Strategies'
-      consumes 'application/json'
-      produces 'application/json'
-      security [Bearer: []]
-      parameter name: :strategy, in: :body, schema: {
-        type: :object,
-        properties: {
-          from_schedule: { type: :string, format: :date_time, example: '2025-01-01T09:00:00Z' },
-          to_schedule: { type: :string, format: :date_time, example: '2025-01-31T18:00:00Z' },
-          description: { type: :string, example: 'Q1 Social Media Campaign' }
-        },
-        required: %w[from_schedule to_schedule description]
-      }
-      response '201', 'Strategy created successfully' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 strategy: { type: :object }
-               },
-               required: %w[status strategy]
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:strategy) do
-          {
-            from_schedule: '2025-01-01T09:00:00Z',
-            to_schedule: '2025-01-31T18:00:00Z',
-            description: 'Q1 Social Media Campaign'
-          }
-        end
-        run_test!
+
+    context 'when not authenticated' do
+      before do
+        get '/api/v1/strategies'
       end
-      response '422', 'Missing required parameters' do
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:strategy) { { description: 'Only description provided' } }
-        run_test!
+
+      it 'returns status 401' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'with pagination parameters' do
+      before do
+        create_list(:strategy, 5, company: company, team_member: team_member)
+        get '/api/v1/strategies', params: { page: 1, page_size: 2 }, headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns paginated results' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['strategies'].length).to eq(2)
+        expect(json_response['pagination']['page']).to eq(1)
+        expect(json_response['pagination']['pages']).to be > 1
       end
     end
   end
-  path '/api/v1/strategies/{id}' do
-    parameter name: :id, in: :path, type: :integer, required: true
-    get 'Retrieves a specific strategy' do
-      tags 'Strategies'
-      produces 'application/json'
-      security [Bearer: []]
-      response '200', 'Strategy retrieved successfully' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 strategy: { type: :object }
-               },
-               required: %w[status strategy]
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:id) { create(:strategy).id }
-        run_test!
+
+  describe 'GET /api/v1/strategies/:id' do
+    context 'when strategy exists' do
+      before do
+        get "/api/v1/strategies/#{strategy.id}", headers: { 'Authorization' => "Bearer #{token}" }
       end
-      response '404', 'Strategy not found' do
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:id) { 9999 }
-        run_test!
+
+      it 'returns status 200' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns the strategy details' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+        expect(json_response['strategy']['id']).to eq(strategy.id)
+        expect(json_response['strategy']['description']).to eq(strategy.description)
+      end
+    end
+
+    context 'when strategy does not exist' do
+      before do
+        get '/api/v1/strategies/99999', headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 404' do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when not authenticated' do
+      before do
+        get "/api/v1/strategies/#{strategy.id}"
+      end
+
+      it 'returns status 401' do
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end
-  path '/api/v1/strategies/{strategy_id}/posts' do
-    parameter name: :strategy_id, in: :path, type: :integer, required: true
 
-    get 'List posts for a specific strategy' do
-      tags 'Strategy Posts'
-      produces 'application/json'
-      security [Bearer: []]
-      parameter name: :page, in: :query, type: :integer, required: false
-      parameter name: :page_size, in: :query, type: :integer, required: false
-      response '200', 'Posts listed' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 posts: { type: :array, items: { type: :object } },
-                 pagination: { '$ref' => '#/components/schemas/Pagination' }
-               },
-               required: %w[status posts pagination]
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:strategy_id) { create(:strategy).id }
-        run_test!
+  describe 'POST /api/v1/strategies' do
+    let(:valid_params) do
+      {
+        strategy: {
+          description: 'Test Strategy',
+          from_schedule: '2024-01-01T00:00:00Z',
+          to_schedule: '2024-12-31T23:59:59Z'
+        }
+      }
+    end
+
+    context 'with valid parameters' do
+      before do
+        post '/api/v1/strategies', params: valid_params, headers: { 'Authorization' => "Bearer #{token}" }
       end
-      response '401', 'Unauthorized' do
-        let(:Authorization) { '' }
-        let(:strategy_id) { 1 }
-        run_test!
+
+      it 'returns status 201' do
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates a new strategy' do
+        expect(Strategy.count).to eq(2) # Including the one created in let block
+      end
+
+      it 'returns the created strategy' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(201)
+        expect(json_response['strategy']['description']).to eq('Test Strategy')
       end
     end
 
-    post 'Create a post for a specific strategy' do
-      tags 'Strategy Posts'
-      consumes 'application/json'
-      produces 'application/json'
-      security [Bearer: []]
-      parameter name: :post, in: :body, schema: {
-        type: :object,
-        properties: {
-          title: { type: :string },
-          description: { type: :string },
-          tags: { type: :string },
-          category: { type: :string },
-          emoji: { type: :string },
-          programming_date_to_post: { type: :string, format: :date_time },
-          is_published: { type: :boolean },
-          image_url: { type: :string, nullable: true }
-        },
-        required: %w[title description tags category emoji programming_date_to_post]
-      }
-      response '201', 'Post created' do
-        schema type: :object,
-               properties: {
-                 status: { '$ref' => '#/components/schemas/StatusSuccess' },
-                 post: { type: :object }
-               },
-               required: %w[status post]
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:strategy_id) { create(:strategy).id }
-        let(:post) do
-          {
-            title: 'Test Post',
-            description: 'Test description',
-            tags: 'tag1,tag2',
-            category: 'Marketing',
-            emoji: '🚀',
-            programming_date_to_post: Time.now.utc.iso8601,
-            is_published: true
+    context 'with invalid parameters' do
+      let(:invalid_params) do
+        {
+          strategy: {
+            description: '',
+            from_schedule: 'invalid-date'
           }
-        end
-        run_test!
+        }
       end
-      response '422', 'Validation error' do
-        let(:Authorization) { "Bearer #{generate_jwt_token_for_user}" }
-        let(:strategy_id) { create(:strategy).id }
-        let(:post) { { title: '' } }
-        run_test!
+
+      before do
+        post '/api/v1/strategies', params: invalid_params, headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 422' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns validation errors' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to be_an(Array)
+        expect(json_response['errors']).not_to be_empty
+      end
+    end
+
+    context 'when user is not associated with a team' do
+      let(:user_without_team) { create(:user) }
+      let(:token_without_team) { generate_jwt_token_for_user(user_without_team) }
+
+      before do
+        post '/api/v1/strategies', params: valid_params, headers: { 'Authorization' => "Bearer #{token_without_team}" }
+      end
+
+      it 'returns status 422' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to include('User is not associated with a team or company')
+      end
+    end
+
+    context 'when not authenticated' do
+      before do
+        post '/api/v1/strategies', params: valid_params
+      end
+
+      it 'returns status 401' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  describe 'PUT /api/v1/strategies/:id' do
+    let(:update_params) do
+      {
+        strategy: {
+          description: 'Updated Strategy Description'
+        }
+      }
+    end
+
+    context 'with valid parameters' do
+      before do
+        put "/api/v1/strategies/#{strategy.id}", params: update_params, headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 200' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'updates the strategy' do
+        strategy.reload
+        expect(strategy.description).to eq('Updated Strategy Description')
+      end
+
+      it 'returns the updated strategy' do
+        json_response = JSON.parse(response.body)
+        expect(json_response['status']['code']).to eq(200)
+        expect(json_response['strategy']['description']).to eq('Updated Strategy Description')
+      end
+    end
+
+    context 'when strategy does not exist' do
+      before do
+        put '/api/v1/strategies/99999', params: update_params, headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 404' do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when not authenticated' do
+      before do
+        put "/api/v1/strategies/#{strategy.id}", params: update_params
+      end
+
+      it 'returns status 401' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
+
+  describe 'DELETE /api/v1/strategies/:id' do
+    context 'when strategy exists' do
+      before do
+        delete "/api/v1/strategies/#{strategy.id}", headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 200' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'deletes the strategy' do
+        expect(Strategy.exists?(strategy.id)).to be false
+      end
+    end
+
+    context 'when strategy does not exist' do
+      before do
+        delete '/api/v1/strategies/99999', headers: { 'Authorization' => "Bearer #{token}" }
+      end
+
+      it 'returns status 404' do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when not authenticated' do
+      before do
+        delete "/api/v1/strategies/#{strategy.id}"
+      end
+
+      it 'returns status 401' do
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end

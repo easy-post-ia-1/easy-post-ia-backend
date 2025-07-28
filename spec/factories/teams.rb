@@ -23,6 +23,7 @@
 FactoryBot.define do
   factory :team do
     name { 'Sancocho Team' }
+    code { Faker::Alphanumeric.alphanumeric(number: 6).upcase }
     company
   end
 end

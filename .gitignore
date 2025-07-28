@@ -105,8 +105,6 @@ yarn-debug.log*
 /public/uploads
 
 
-coverage/*
-
 .DS_Store
 
 /app/assets/builds/*

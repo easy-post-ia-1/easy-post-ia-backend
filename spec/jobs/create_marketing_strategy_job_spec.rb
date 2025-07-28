@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe CreateMarketingStrategyJob do
   let(:company) { create(:company) }
   let(:team) { create(:team, company: company) }
-  let(:user) { create(:user, company: company) }
+  let(:user) { create(:user) }
   let(:team_member) { create(:team_member, user: user, team: team) }
   let(:strategy) do
     create(:strategy,

@@ -6,10 +6,10 @@ RSpec.describe Api::V1::Posts::PostsController do
   let(:team) { create(:team) }
   let(:team_employee) { create(:team) }
   let(:admin) do
-    create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com', company: team.company)
+    create(:user, role: 'ADMIN', username: 'admin_user', email: 'admin@example.com')
   end
   let(:employee) do
-    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com', company: team_employee.company)
+    create(:user, role: 'EMPLOYEE', username: 'emp_user', email: 'employee@example.com')
   end
   let(:admin_team_member) { create(:team_member, user: admin, team: team) }
   let(:employee_team_member) { create(:team_member, user: employee, team: team_employee) }
@@ -31,6 +31,8 @@ RSpec.describe Api::V1::Posts::PostsController do
       title: 'Sample Post',
       description: 'This is a sample post description',
       tags: 'example,post',
+      category: 'marketing',
+      emoji: '📝',
       programming_date_to_post: '2024-11-26T00:00:00Z',
       team_member_id: admin_team_member.id,
       strategy_id: strategy_admin.id

@@ -37,6 +37,8 @@ FactoryBot.define do
     status { %i[pending in_progress completed].sample }
     success_response { { message: 'Strategy created successfully' } }
     error_response { { message: 'No error' } }
+    company
+    team_member
 
     transient do
       posts { [] }

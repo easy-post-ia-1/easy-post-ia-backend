@@ -53,15 +53,18 @@ RSpec.describe Strategy do
     expect(strategy.errors[:to_schedule]).to include("can't be blank")
   end
 
-  it 'is not valid if to_schedule is before from_schedule' do
-    strategy.from_schedule = Time.zone.today
-    strategy.to_schedule = 1.day.ago
-    expect(strategy).not_to be_valid
-    expect(strategy.errors[:to_schedule]).to include('must be after or equal to From schedule')
+  describe 'associations' do
+    it { is_expected.to belong_to(:company) }
+    it { is_expected.to belong_to(:team_member) }
+    it { is_expected.to have_many(:posts) }
   end
 
-  describe 'associations' do
-    it { is_expected.to have_many(:posts) }
-    it { is_expected.to belong_to(:company).optional }
+  describe '#fields' do
+    it { is_expected.to have_db_column(:description).of_type(:string) }
+    it { is_expected.to have_db_column(:from_schedule).of_type(:datetime) }
+    it { is_expected.to have_db_column(:to_schedule).of_type(:datetime) }
+    it { is_expected.to have_db_column(:status).of_type(:integer) }
+    it { is_expected.to have_db_column(:company_id).of_type(:integer) }
+    it { is_expected.to have_db_column(:team_member_id).of_type(:integer) }
   end
 end

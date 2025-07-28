@@ -11,7 +11,7 @@ RSpec.describe Api::V1::Users::SessionsController do
 
   let(:company) { create(:company) }
   let(:user) do
-    create(:user, username: 'test_user', email: 'test@example.com', password: 'password123', company: company)
+    create(:user, username: 'test_user', email: 'test@example.com', password: 'password123')
   end
 
   def generate_jwt_token_for_user(user)
